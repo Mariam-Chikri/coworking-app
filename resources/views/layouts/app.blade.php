@@ -312,4 +312,8 @@
 
 @stack('scripts')
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> a509ab6495cff60fd6f73a74267ef3fdfc0905c3
