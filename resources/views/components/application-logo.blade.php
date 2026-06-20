@@ -1,5 +1,5 @@
 <img 
-    src="{{ asset('C:/Projets/coworking-app/public/images/logo.png') }}"
+    src="{{ asset('images/logo.png') }}"
     {{ $attributes }}
     alt="Logo"
 >
