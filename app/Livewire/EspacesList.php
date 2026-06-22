@@ -22,8 +22,8 @@ class EspacesList extends Component
     public function render()
     {
         $query = Espace::reservable()
-            ->withAvg('avis', 'note')
-            ->withCount('avis');
+            ->withAvg(['avis' => fn($q) => $q->where('valide', true)], 'note')
+            ->withCount(['avis' => fn($q) => $q->where('valide', true)]);
 
         if ($this->recherche) {
             $query->where(fn($q) =>
@@ -36,8 +36,9 @@ class EspacesList extends Component
             $query->where('type', $this->type);
         }
 
+        // Filtrer par capacité maximale (l'espace doit pouvoir accueillir au moins N personnes)
         if ($this->capaciteMin > 1) {
-            $query->where('capacite', '>=', $this->capaciteMin);
+            $query->where('capacite_max', '>=', $this->capaciteMin);
         }
 
         if ($this->debut && $this->fin) {
@@ -45,19 +46,19 @@ class EspacesList extends Component
         }
 
         $espaces = $query->orderBy($this->tri)->paginate(9);
-        $espacesNonReservables = Espace::nonReservable()->get();
 
         $favorisIds = auth()->check()
-            ? auth()->user()->espacesFavoris()->pluck('espaces.id')->toArray()
+            ? auth()->user()->favoris()->pluck('espace_id')->toArray()
             : [];
 
-        return view('livewire.espaces-list', compact('espaces', 'espacesNonReservables', 'favorisIds'));
+        return view('livewire.espaces-list', compact('espaces', 'favorisIds'));
     }
 
-    public function toggleFavori(int $espaceId)
+    public function toggleFavori(int $espaceId): void
     {
         if (!auth()->check()) {
-            return redirect()->route('login');
+            $this->redirect(route('login'));
+            return;
         }
 
         $user = auth()->user();
@@ -72,9 +73,10 @@ class EspacesList extends Component
         }
     }
 
-    public function resetFiltres()
+    public function resetFiltres(): void
     {
         $this->reset(['recherche', 'type', 'capaciteMin', 'debut', 'fin']);
         $this->resetPage();
     }
 }
+

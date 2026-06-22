@@ -29,6 +29,303 @@
 }
 
 /* ============================================
+   PAGINATION AMÉLIORÉE - COULEURS CLAIRES
+   ============================================ */
+
+.cw-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-100);
+}
+
+/* Conteneur des numéros de pages */
+.cw-page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ============================================
+   BOUTONS DE PAGINATION - ÉTATS CLAIRS
+   ============================================ */
+
+.cw-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    border: 2px solid transparent;
+    font-weight: 600;
+    font-size: 0.88rem;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+/* ===== ÉTAT NORMAL (ACTIF) ===== */
+.cw-page-btn:not(.disabled):not(.active) {
+    background: var(--white);
+    color: var(--gray-700);
+    border-color: var(--gray-200);
+}
+
+.cw-page-btn:not(.disabled):not(.active):hover {
+    background: var(--gradient-soft);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.cw-page-btn:not(.disabled):not(.active):active {
+    transform: scale(0.95);
+}
+
+/* ===== ÉTAT ACTIF (PAGE COURANTE) ===== */
+.cw-page-btn.active {
+    background: var(--gradient);
+    color: var(--white);
+    border-color: var(--primary);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+    cursor: default;
+}
+
+.cw-page-btn.active .cw-page-active-indicator {
+    display: block;
+}
+
+/* Petit indicateur sous le numéro actif */
+.cw-page-active-indicator {
+    display: none;
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: var(--white);
+    border-radius: 2px;
+}
+
+/* ===== ÉTAT DÉSACTIVÉ ===== */
+.cw-page-btn.disabled {
+    background: var(--gray-100);
+    color: var(--gray-400);
+    border-color: var(--gray-200);
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.cw-page-btn.disabled i {
+    opacity: 0.4;
+}
+
+.cw-page-btn.disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: var(--gray-200);
+    background: var(--gray-100);
+    color: var(--gray-400);
+}
+
+/* ===== BOUTONS PRÉCÉDENT / SUIVANT ===== */
+.cw-page-btn-prev,
+.cw-page-btn-next {
+    min-width: 110px;
+    padding: 0 1.2rem;
+    gap: 0.5rem;
+    border-radius: 10px;
+}
+
+.cw-page-btn-prev i,
+.cw-page-btn-next i {
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+/* Survol des boutons actifs */
+.cw-page-btn-prev:not(.disabled):not(.active):hover i {
+    transform: translateX(-3px);
+}
+
+.cw-page-btn-next:not(.disabled):not(.active):hover i {
+    transform: translateX(3px);
+}
+
+/* Version désactivée des boutons Prev/Next */
+.cw-page-btn-prev.disabled,
+.cw-page-btn-next.disabled {
+    background: #f3f4f6;
+    color: #d1d5db;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ===== POINTS DE SUSPENSION ===== */
+.cw-page-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    color: var(--gray-400);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    user-select: none;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .cw-pagination {
+        gap: 0.3rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius);
+    }
+
+    .cw-page-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 0.6rem;
+        font-size: 0.78rem;
+        border-radius: 8px;
+    }
+
+    .cw-page-btn-prev,
+    .cw-page-btn-next {
+        min-width: 80px;
+        padding: 0 0.8rem;
+        font-size: 0.75rem;
+    }
+
+    .cw-page-ellipsis {
+        min-width: 24px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cw-pagination {
+        gap: 0.2rem;
+        padding: 0.4rem 0.5rem;
+    }
+
+    .cw-page-btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 0.4rem;
+        font-size: 0.7rem;
+        border-radius: 6px;
+    }
+
+    .cw-page-btn-prev,
+    .cw-page-btn-next {
+        min-width: 50px;
+        padding: 0 0.5rem;
+        font-size: 0.65rem;
+    }
+
+    .cw-page-btn-prev span,
+    .cw-page-btn-next span {
+        display: none;
+    }
+
+    .cw-page-btn-prev i,
+    .cw-page-btn-next i {
+        font-size: 0.8rem;
+    }
+
+    .cw-page-ellipsis {
+        min-width: 20px;
+        font-size: 0.8rem;
+    }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+.cw-page-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Effet de ripple au clic */
+.cw-page-btn:not(.disabled):not(.active):active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(102, 126, 234, 0.1);
+    animation: ripple 0.4s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   DARK MODE COMPATIBILITY (optionnel)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    .cw-pagination {
+        background: var(--gray-900);
+        border-color: var(--gray-700);
+    }
+
+    .cw-page-btn:not(.disabled):not(.active) {
+        background: var(--gray-800);
+        color: var(--gray-200);
+        border-color: var(--gray-700);
+    }
+
+    .cw-page-btn:not(.disabled):not(.active):hover {
+        background: var(--gradient-soft);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .cw-page-btn.disabled {
+        background: var(--gray-800);
+        color: var(--gray-600);
+        border-color: var(--gray-700);
+    }
+
+    .cw-page-ellipsis {
+        color: var(--gray-600);
+    }
+}
+
+/* ============================================
    DROPDOWN UTILISATEUR
    ============================================ */
 .cw-user-menu {

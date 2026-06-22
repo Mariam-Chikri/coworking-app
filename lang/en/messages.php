@@ -13,7 +13,8 @@ return [
     'liens_utiles' => 'Useful Links',
     'a_propos' => 'About',
     'droits_reserves' => 'All rights reserved.',
-    'footer_desc' => 'Your premium coworking space in the heart of Paris.',
+    'footer_desc' => 'Your premium coworking space in the heart of Morocco.',
+    'user_reservation_conflit' => 'You already have a reservation for another space during this period.',
 
     // Home
     'hero_titre' => 'Work better, together.',
@@ -44,7 +45,11 @@ return [
     'tous_types' => 'All types',
     'bureau' => 'Private office',
     'salle' => 'Meeting room',
+    'bureau_individuel' => 'Individual Office',
+    'bureau_prive' => 'Private Office',
     'open_space' => 'Open Space',
+    'salle_reunion' => 'Meeting Room',
+    'salle_conference' => 'Conference Room',
     'capacite_min' => 'Minimum capacity',
     'date_debut' => 'Start date',
     'date_fin' => 'End date',
@@ -71,6 +76,7 @@ return [
     'reservation_confirmee' => 'Booking confirmed successfully!',
     'reservation_annulee' => 'Booking cancelled.',
     'creneau_indisponible' => 'This time slot is not available.',
+    'user_reservation_conflit' => 'You already have a reservation on this time slot',
     'espace_non_reservable' => 'This space is not bookable.',
     'capacite_depassee' => 'The space capacity is exceeded.',
     'annulation_impossible' => 'This reservation cannot be cancelled.',
@@ -143,3 +149,4 @@ return [
     'chatbot_placeholder' => 'Ask your question...',
     'chatbot_envoyer' => 'Send',
 ];
+

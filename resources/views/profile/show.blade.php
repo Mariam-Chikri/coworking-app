@@ -64,9 +64,9 @@
             </div>
         </div>
         <div class="cw-kpi-card">
-            <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"><i class="fas fa-euro-sign"></i></div>
+            <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"><span style="font-weight:bold;font-size:1.1rem">DH</span></div>
             <div>
-                <div class="cw-kpi-value">{{ number_format($totalDepense, 0) }}€</div>
+                <div class="cw-kpi-value">{{ number_format($totalDepense, 0) }}MAD</div>
                 <div class="cw-kpi-label">{{ $locale === 'en' ? 'Total spent' : 'Total dépensé' }}</div>
             </div>
         </div>
@@ -308,7 +308,7 @@
                     </div>
                 </div>
                 <div style="text-align:right">
-                    <div class="cw-rez-prix">{{ number_format($rez->prix_total ?? 0, 2) }}€</div>
+                    <div class="cw-rez-prix">{{ number_format($rez->prix_total ?? 0, 2) }}MAD</div>
                     <div class="cw-rez-actions" style="margin-top:.5rem">
                         <a href="{{ route('espaces.show', $rez->espace) }}" class="cw-btn cw-btn-outline cw-btn-xs">
                             <i class="fas fa-eye"></i>
@@ -371,7 +371,7 @@
                         {{ __('messages.facture_'.$facture->statut) }}
                     </span>
                 </div>
-                <div class="cw-facture-amount">{{ number_format($facture->montant_ttc, 2) }}€</div>
+                <div class="cw-facture-amount">{{ number_format($facture->montant_ttc, 2) }}MAD</div>
                 <a href="{{ route('factures.pdf', $facture) }}" target="_blank"
                    class="cw-btn cw-btn-outline cw-btn-sm">
                     <i class="fas fa-file-pdf"></i>

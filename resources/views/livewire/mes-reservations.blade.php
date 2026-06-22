@@ -53,9 +53,9 @@
                     @endif
                 </div>
                 <div style="text-align:right">
-                    <div class="cw-rez-prix">{{ number_format($rez->prix_total, 2) }} €</div>
+                    <div class="cw-rez-prix">{{ number_format($rez->prix_total, 2) }} MAD</div>
                     @if($rez->prix_prolongation > 0)
-                        <div style="font-size:.78rem;color:var(--gray-400)">dont {{ number_format($rez->prix_prolongation,2) }}€ prolongation</div>
+                        <div style="font-size:.78rem;color:var(--gray-400)">dont {{ number_format($rez->prix_prolongation,2) }}MAD prolongation</div>
                     @endif
                     <div class="cw-rez-actions" style="margin-top:.75rem">
                         {{-- Facture --}}
@@ -135,7 +135,7 @@
             @endphp
             <div class="cw-price-preview">
                 <div style="font-size:.85rem;color:var(--gray-500)">Supplément</div>
-                <div class="price">+{{ number_format($prixSupp, 2) }} €</div>
+                <div class="price">+{{ number_format($prixSupp, 2) }} MAD</div>
             </div>
             <div class="cw-modal-actions">
                 <button wire:click="$set('reservationProlongerID', null)" class="cw-btn cw-btn-outline">

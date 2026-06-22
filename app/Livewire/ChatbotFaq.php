@@ -33,8 +33,8 @@ class ChatbotFaq extends Component
         ],
         'tarif' => [
             'keywords' => ['prix', 'tarif', 'price', 'coût', 'cost', 'combien', 'how much', 'euro'],
-            'fr' => "Les tarifs varient selon l'espace. Nos bureaux individuels démarrent à 8€/h, les salles de réunion à 25€/h et l'open space à 15€/h. Consultez la page 'Espaces' pour les tarifs exacts.",
-            'en' => "Prices vary by space. Individual offices start at €8/h, meeting rooms at €25/h and open space at €15/h. Check the 'Spaces' page for exact rates.",
+            'fr' => "Les tarifs varient selon l'espace. Nos bureaux individuels démarrent à 8MAD/h, les salles de réunion à 25MAD/h et l'open space à 15MAD/h. Consultez la page 'Espaces' pour les tarifs exacts.",
+            'en' => "Prices vary by space. Individual offices start at 8MAD/h, meeting rooms at 25MAD/h and open space at 15MAD/h. Check the 'Spaces' page for exact rates.",
         ],
         'wifi' => [
             'keywords' => ['wifi', 'internet', 'connexion', 'connection', 'réseau', 'network'],

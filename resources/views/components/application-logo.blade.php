@@ -1,5 +1,5 @@
 <img 
     src="{{ asset('images/logo.png') }}"
-    {{ $attributes }}
+    style="width:200px;height:180px;"
     alt="Logo"
 >

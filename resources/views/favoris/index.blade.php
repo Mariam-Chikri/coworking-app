@@ -13,7 +13,7 @@
         <div class="cw-empty">
             <i class="fas fa-heart"></i>
             <h3>{{ __('messages.aucun_favori') }}</h3>
-            <a href="{{ route('espaces.index') }}" class="cw-btn cw-btn-primary" style="margin-top:1rem">
+            <a wire:navigate href="{{ route('espaces.index') }}" class="cw-btn cw-btn-primary" style="margin-top:1rem">
                 {{ __('messages.hero_cta') }}
             </a>
         </div>
@@ -33,10 +33,10 @@
                         <span class="cw-card-rating"><span class="stars">★</span> {{ number_format($espace->avis_avg_note,1) }}</span>
                         @endif
                     </div>
-                    <div class="cw-card-price">{{ number_format($espace->prix_heure, 0) }}€ <small>{{ __('messages.par_heure') }}</small></div>
+                    <div class="cw-card-price">{{ number_format($espace->prix_heure, 0) }}MAD <small>{{ __('messages.par_heure') }}</small></div>
                     <div class="cw-card-actions">
-                        <a href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-primary cw-btn-sm">
-                            {{ __('messages.reserver') }}
+                        <a wire:navigate href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-primary cw-btn-sm">
+                                                    {{ __('messages.reserver') }}
                         </a>
                     </div>
                 </div>

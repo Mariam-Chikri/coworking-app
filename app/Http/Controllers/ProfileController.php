@@ -2,14 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function update(Request $request)
+    /**
+     * Afficher le formulaire de profil (Breeze default — redirige vers notre vue personnalisée).
+     */
+    public function edit(Request $request): RedirectResponse
+    {
+        return redirect()->route('profile');
+    }
+
+    /**
+     * Mettre à jour les infos du profil (nom, email, téléphone, entreprise).
+     */
+    public function update(Request $request): RedirectResponse
     {
         $user = Auth::user();
 
@@ -22,13 +36,20 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('profile', ['tab' => 'profil'])
+        if ($request->expectsJson()) {
+            return back()->with('status', 'profile-updated');
+        }
+
+        return redirect()->route('profile')
             ->with('success', app()->getLocale() === 'en'
                 ? 'Profile updated successfully!'
                 : 'Profil mis à jour avec succès !');
     }
 
-    public function updatePassword(Request $request)
+    /**
+     * Mettre à jour le mot de passe.
+     */
+    public function updatePassword(Request $request): RedirectResponse
     {
         $request->validate([
             'current_password' => ['required', 'current_password'],
@@ -39,9 +60,30 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('profile', ['tab' => 'profil'])
+        return redirect()->route('profile')
             ->with('success', app()->getLocale() === 'en'
                 ? 'Password updated successfully!'
                 : 'Mot de passe mis à jour avec succès !');
     }
+
+    /**
+     * Supprimer le compte (Breeze default).
+     */
+    public function destroy(Request $request): RedirectResponse
+    {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = Auth::user();
+
+        Auth::logout();
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
 }
+

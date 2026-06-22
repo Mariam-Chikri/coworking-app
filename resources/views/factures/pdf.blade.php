@@ -34,9 +34,9 @@
     <div>
         <div class="logo">CoWork<strong>Space</strong></div>
         <div style="color:#666;margin-top:5px;font-size:11px">
-            42 Rue du Coworking, 75001 Paris<br>
-            contact@coworking.fr | +33 1 23 45 67 89<br>
-            SIRET : 12345678900012 | TVA : FR12345678900
+            42 Rue du Marjane, 75001 Maroc<br>
+            contact@coworking.ma | +212 1 23 45 67 89<br>
+            SIRET : 12345678900012 | TVA : MA12345678900
         </div>
     </div>
     <div class="company-info">
@@ -45,7 +45,7 @@
         <div style="margin-top:10px">
             Émise le : {{ $facture->date_emission->format('d/m/Y') }}<br>
             Échéance : {{ $facture->date_echeance?->format('d/m/Y') ?? 'N/A' }}<br>
-            Statut : <span class="badge badge-{{ $facture->statut }}">{{ strtoupper($facture->statut) }}</span>
+            Statut : <span>{{ strtoupper($facture->statut) }}</span>
         </div>
     </div>
 </div>
@@ -88,15 +88,15 @@
                 <small style="color:#999">{{ $facture->reservation->debut->format('d/m/Y H:i') }} → {{ $facture->reservation->fin->format('H:i') }}</small>
             </td>
             <td>{{ $facture->reservation->duree_heures }}h</td>
-            <td>{{ number_format($facture->reservation->espace->prix_heure / 1.20, 2) }} €</td>
-            <td>{{ number_format($facture->montant_ht, 2) }} €</td>
+            <td>{{ number_format($facture->reservation->espace->prix_heure / 1.20, 2) }} MAD</td>
+            <td>{{ number_format($facture->montant_ht, 2) }} MAD</td>
         </tr>
         @if($facture->reservation->prix_prolongation > 0)
         <tr>
             <td>Prolongation de réservation</td>
             <td>—</td>
             <td>—</td>
-            <td>{{ number_format($facture->reservation->prix_prolongation / 1.20, 2) }} €</td>
+            <td>{{ number_format($facture->reservation->prix_prolongation / 1.20, 2) }} MAD</td>
         </tr>
         @endif
     </tbody>
@@ -104,9 +104,9 @@
 
 <div class="totaux">
     <table>
-        <tr><td>Sous-total HT</td><td>{{ number_format($facture->montant_ht, 2) }} €</td></tr>
-        <tr><td>TVA ({{ $facture->tva }}%)</td><td>{{ number_format($facture->montant_ttc - $facture->montant_ht, 2) }} €</td></tr>
-        <tr class="total-ttc"><td><strong>TOTAL TTC</strong></td><td><strong>{{ number_format($facture->montant_ttc, 2) }} €</strong></td></tr>
+        <tr><td>Sous-total HT</td><td>{{ number_format($facture->montant_ht, 2) }} MAD</td></tr>
+        <tr><td>TVA ({{ $facture->tva }}%)</td><td>{{ number_format($facture->montant_ttc - $facture->montant_ht, 2) }} MAD</td></tr>
+        <tr class="total-ttc"><td><strong>TOTAL TTC</strong></td><td><strong>{{ number_format($facture->montant_ttc, 2) }} MAD</strong></td></tr>
     </table>
 </div>
 
@@ -120,8 +120,8 @@
 @endif
 
 <div class="footer">
-    <p>CoWorkSpace — 42 Rue du Coworking, 75001 Paris | contact@coworking.fr | +33 1 23 45 67 89</p>
-    <p style="margin-top:5px">Règlement par virement : IBAN FR76 1234 5678 9012 3456 7890 123 | BIC XXXXXXXX</p>
+    <p>CoWorkSpace — 42 Rue du Marjane, 75001 Maroc | contact@coworking.ma | +212 1 23 45 67 89</p>
+    <p style="margin-top:5px">Règlement par virement : IBAN MA76 1234 5678 9012 3456 7890 123 | BIC XXXXXXXX</p>
     <p style="margin-top:5px;color:#bbb">Facture générée automatiquement — Merci pour votre confiance !</p>
 </div>
 </body>

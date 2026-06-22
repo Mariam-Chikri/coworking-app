@@ -9,7 +9,7 @@
 </div>
 <div class="cw-container" style="padding-bottom:4rem">
     <div style="display:flex;justify-content:flex-end;margin-bottom:1.5rem">
-        <a href="{{ route('espaces.index') }}" class="cw-btn cw-btn-primary">
+        <a wire:navigate href="{{ route('espaces.index') }}" class="cw-btn cw-btn-primary">
             <i class="fas fa-plus"></i> {{ __('messages.nouvelle_reservation') }}
         </a>
     </div>

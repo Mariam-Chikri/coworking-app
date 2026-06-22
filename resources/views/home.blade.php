@@ -10,7 +10,7 @@
             <h1>{{ __('messages.hero_titre') }}</h1>
             <p>{{ __('messages.hero_sous_titre') }}</p>
             <div class="cw-hero-actions">
-                <a href="{{ route('espaces.index') }}" class="cw-btn-hero">
+                <a href="{{ route('espaces.index') }}" wire:navigate class="cw-btn-hero">
                     <i class="fas fa-th-large"></i> {{ __('messages.hero_cta') }}
                 </a>
                 <a href="#comment" class="cw-btn-hero-outline">
@@ -70,13 +70,12 @@
         <div class="cw-grid">
             @foreach(\App\Models\Espace::reservable()->withAvg('avis','note')->take(3)->get() as $espace)
             <div class="cw-card">
-                <div class="cw-card-img" style="background: {{ $espace->couleur ?? 'var(--gradient)' }}">
-                    @if(is_array($espace->photos) && count($espace->photos))
-                        <img src="{{ asset('storage/' . $espace->photos[0]) }}" style="width:100%;height:100%;object-fit:cover;">
-                    @else
-                        <i class="fas fa-{{ $espace->icone ?? 'building' }}"></i>
-                    @endif
-                    <span class="cw-card-badge">{{ __('messages.' . $espace->type) }}</span>
+                <div class="cw-card-img" style="background:var(--gradient);overflow:hidden;padding:0">
+                    <img src="{{ $espace->photo_url }}"
+                         alt="{{ $espace->nom }}"
+                         style="width:100%;height:100%;object-fit:cover"
+                         onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $espace->id }}/400/200'">
+                    <span class="cw-card-badge">{{ $espace->type_label }}</span>
                 </div>
                 <div class="cw-card-body">
                     <div class="cw-card-title">{{ $espace->nom_localised }}</div>
@@ -88,15 +87,15 @@
                     </div>
                     <div class="cw-card-price">{{ number_format($espace->prix_heure, 0) }}MAD <small style="font-size:.7em;opacity:.7">{{ __('messages.par_heure') }}</small></div>
                     <div class="cw-card-actions">
-                        <a href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-primary cw-btn-sm">{{ __('messages.reserver') }}</a>
-                        <a href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-outline cw-btn-sm">{{ __('messages.voir_detail') }}</a>
+                        <a href="{{ route('espaces.show', $espace) }}" wire:navigate class="cw-btn cw-btn-primary cw-btn-sm">{{ __('messages.reserver') }}</a>
+                        <a href="{{ route('espaces.show', $espace) }}" wire:navigate class="cw-btn cw-btn-outline cw-btn-sm">{{ __('messages.voir_detail') }}</a>
                     </div>
                 </div>
             </div>
             @endforeach
         </div>
         <div style="text-align:center;margin-top:2rem;">
-            <a href="{{ route('espaces.index') }}" class="cw-btn cw-btn-primary">
+            <a href="{{ route('espaces.index') }}" wire:navigate class="cw-btn cw-btn-primary">
                 {{ app()->getLocale() === 'en' ? 'View all spaces' : 'Voir tous les espaces' }} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
@@ -155,14 +154,15 @@
             {{ app()->getLocale() === 'en' ? 'Join hundreds of professionals who trust us.' : 'Rejoignez des centaines de professionnels qui nous font confiance.' }}
         </p>
         @guest
-            <a href="{{ route('register') }}" class="cw-btn-hero">
+            <a href="{{ route('register') }}" wire:navigate class="cw-btn-hero">
                 <i class="fas fa-rocket"></i> {{ __('messages.creer_compte') }}
             </a>
         @else
-            <a href="{{ route('espaces.index') }}" class="cw-btn-hero">
+            <a href="{{ route('espaces.index') }}" wire:navigate class="cw-btn-hero">
                 <i class="fas fa-th-large"></i> {{ __('messages.hero_cta') }}
             </a>
         @endguest
     </div>
 </section>
 @endsection
+

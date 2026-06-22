@@ -29,7 +29,7 @@
                         {{ __('messages.facture_'.$facture->statut) }}
                     </span>
                 </div>
-                <div class="cw-facture-amount">{{ number_format($facture->montant_ttc, 2) }} €</div>
+                <div class="cw-facture-amount">{{ number_format($facture->montant_ttc, 2) }} MAD</div>
                 <a href="{{ route('factures.pdf', $facture) }}" target="_blank"
                    class="cw-btn cw-btn-outline cw-btn-sm">
                     <i class="fas fa-file-pdf"></i> {{ __('messages.telecharger_pdf') }}

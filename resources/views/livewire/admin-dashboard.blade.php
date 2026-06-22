@@ -25,9 +25,9 @@
             </div>
         </div>
         <div class="cw-kpi-card">
-            <div class="cw-kpi-icon"><i class="fas fa-euro-sign"></i></div>
+            <div class="cw-kpi-icon"><span style="font-weight:bold">DH</span></div>
             <div>
-                <div class="cw-kpi-value">{{ number_format($kpis['revenus_periode'] ?? 0, 0, ',', ' ') }}€</div>
+                <div class="cw-kpi-value">{{ number_format($kpis['revenus_periode'] ?? 0, 0, ',', ' ') }}MAD</div>
                 <div class="cw-kpi-label">{{ app()->getLocale() === 'en' ? 'Revenue' : 'Revenus' }} ({{ $periodeStats }}j)</div>
             </div>
         </div>
@@ -135,7 +135,7 @@
         <table class="cw-table">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th>ID</th>
                     <th>{{ app()->getLocale() === 'en' ? 'User' : 'Utilisateur' }}</th>
                     <th>{{ app()->getLocale() === 'en' ? 'Space' : 'Espace' }}</th>
                     <th>{{ app()->getLocale() === 'en' ? 'Start' : 'Début' }}</th>
@@ -151,7 +151,7 @@
                     <td>{{ $rez->espace->nom }}</td>
                     <td>{{ $rez->debut->format('d/m/Y H:i') }}</td>
                     <td><span class="cw-statut-badge {{ $rez->statut }}">{{ __('messages.'.$rez->statut) }}</span></td>
-                    <td><strong>{{ number_format($rez->prix_total, 2) }} €</strong></td>
+                    <td><strong>{{ number_format($rez->prix_total, 2) }} MAD</strong></td>
                 </tr>
                 @endforeach
             </tbody>
@@ -186,7 +186,7 @@ function initCharts() {
             data: {
                 labels: revData.map(d => d.mois),
                 datasets: [{
-                    label: 'Revenus (€)',
+                    label: 'Revenus (MAD)',
                     data: revData.map(d => d.revenus),
                     backgroundColor: 'rgba(102,126,234,.7)',
                     borderRadius: 6,

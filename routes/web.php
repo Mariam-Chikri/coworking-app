@@ -2,8 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\FactureController;
-use App\Http\Livewire\{EspacesList, MesReservations, AdminDashboard, FavorisPage};
 
 /*
 |--------------------------------------------------------------------------
@@ -11,20 +9,18 @@ use App\Http\Livewire\{EspacesList, MesReservations, AdminDashboard, FavorisPage
 |--------------------------------------------------------------------------
 */
 
-// Changement de langue
+// Changement de langue (sans reload via session)
 Route::get('/lang/{locale}', function ($locale) {
-
     if (in_array($locale, ['fr', 'en'])) {
         session()->put('locale', $locale);
     }
-
     return redirect()->back();
-
 })->name('lang.switch');
+
 // Page d'accueil
 Route::get('/', fn() => view('home'))->name('home');
 
-// Espaces
+// Espaces (publics)
 Route::get('/espaces', fn() => view('espaces.index'))
     ->name('espaces.index');
 
@@ -32,10 +28,10 @@ Route::get('/espaces/{espace}', function (\App\Models\Espace $espace) {
     return view('espaces.show', compact('espace'));
 })->name('espaces.show');
 
-// Auth
+// Authentification Breeze
 require __DIR__.'/auth.php';
 
-// Routes protégées
+// Routes protégées (utilisateurs authentifiés)
 Route::middleware(['auth'])->group(function () {
 
     // Réservations
@@ -43,6 +39,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('reservations.index');
 
     Route::get('/reservations/{reservation}', function (\App\Models\Reservation $reservation) {
+        abort_unless(
+            auth()->id() === $reservation->user_id || auth()->user()?->is_admin,
+            403
+        );
         return view('reservations.show', compact('reservation'));
     })->name('reservations.show');
 
@@ -57,29 +57,29 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/factures/{facture}/pdf', [\App\Http\Controllers\Api\FactureController::class, 'telecharger'])
         ->name('factures.pdf');
 
-    // Profil personnalisé
+    // Profil utilisateur (vue personnalisée)
     Route::get('/profil', fn() => view('profile.show'))
         ->name('profile');
 
+    Route::patch('/profil', [ProfileController::class, 'update'])
+        ->name('profile.update');
 
-Route::patch('/profil', [ProfileController::class, 'update'])->name('profile.update');     
-Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->name('profile.password'); 
-    // Dashboard Breeze
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->middleware('verified')->name('dashboard');
+    Route::put('/profil/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password');
 
-    // Routes Breeze Profile
+    // Dashboard Breeze (optionnel)
+    Route::get('/dashboard', fn() => view('dashboard'))
+        ->middleware('verified')
+        ->name('dashboard');
+
+    // Routes Breeze Profile (/profile)
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
-
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 
-    // Administration
+    // Administration (middleware admin requis)
     Route::middleware(['admin'])
         ->prefix('admin')
         ->name('admin.')
@@ -104,3 +104,4 @@ Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->na
                 ->name('factures');
         });
 });
+
