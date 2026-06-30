@@ -13,9 +13,10 @@
                     <option value="">{{ __('messages.tous_types') }}</option>
                     <option value="bureau_individuel">{{ __('messages.bureau_individuel') }}</option>
                     <option value="bureau_prive">{{ __('messages.bureau_prive') }}</option>
-                    <option value="open_space">{{ __('messages.open_space') }}</option>
+                    <option value="open_space_creatif">{{ __('messages.open_space_creatif') }}</option>
                     <option value="salle_reunion">{{ __('messages.salle_reunion') }}</option>
                     <option value="salle_conference">{{ __('messages.salle_conference') }}</option>
+                    <option value="non_reservable">{{ __('messages.non_reservable') }}</option>
                 </select>
             </div>
             <div class="cw-field">
@@ -79,48 +80,65 @@
                             @endauth
                         </div>
 
-                        <div class="cw-card-meta">
-                            <span>
-                                <i class="fas fa-users"></i>
-                                {{ $espace->capacite_min }}-{{ $espace->capacite_max }} {{ __('messages.personnes_max') }}
-                            </span>
-                            @if($espace->avis_avg_note)
-                                <span class="cw-card-rating">
-                                    <span class="stars">★</span> {{ number_format($espace->avis_avg_note, 1) }}
-                                    <span style="color:var(--gray-400)">({{ $espace->avis_count }})</span>
-                                </span>
-                            @else
-                                <span style="color:var(--gray-400);font-size:.8rem">{{ __('messages.aucun_avis') }}</span>
+                        {{-- ✅ Pour les espaces non réservables : seulement nom et description --}}
+                        @if($espace->type === 'non_reservable')
+                            @if($espace->description_localised)
+                                <p style="font-size:.85rem;color:var(--gray-500);margin-top:.25rem;line-height:1.6">
+                                    {{ Str::limit($espace->description_localised, 120) }}
+                                </p>
                             @endif
-                        </div>
+                        @else
+                            {{-- Pour les espaces réservables : affichage normal --}}
+                            <div class="cw-card-meta">
+                                <span>
+                                    <i class="fas fa-users"></i>
+                                    {{ $espace->capacite_min }}-{{ $espace->capacite_max }} {{ __('messages.personnes_max') }}
+                                </span>
+                                @if($espace->avis_avg_note)
+                                    <span class="cw-card-rating">
+                                        <span class="stars">★</span> {{ number_format($espace->avis_avg_note, 1) }}
+                                        <span style="color:var(--gray-400)">({{ $espace->avis_count }})</span>
+                                    </span>
+                                @else
+                                    <span style="color:var(--gray-400);font-size:.8rem">{{ __('messages.aucun_avis') }}</span>
+                                @endif
+                            </div>
 
-                        @if($espace->description_localised)
-                            <p style="font-size:.85rem;color:var(--gray-500);margin-top:.25rem">
-                                {{ Str::limit($espace->description_localised, 80) }}
-                            </p>
+                            @if($espace->description_localised)
+                                <p style="font-size:.85rem;color:var(--gray-500);margin-top:.25rem">
+                                    {{ Str::limit($espace->description_localised, 80) }}
+                                </p>
+                            @endif
+
+                            <div class="cw-occ-bar" title="{{ __('messages.taux_occupation') }}: {{ $espace->taux_occupation }}%">
+                                <div class="cw-occ-fill" style="width:{{ $espace->taux_occupation }}%"></div>
+                            </div>
+
+                            <div class="cw-card-price">
+                                {{ number_format($espace->prix_heure, 0) }}MAD
+                                <small style="font-size:.65em;opacity:.7">{{ __('messages.par_heure') }}</small>
+                                @if($espace->prix_journee)
+                                    <small style="font-size:.65em;opacity:.6;margin-left:.5rem">
+                                        | {{ number_format($espace->prix_journee, 0) }}MAD/j
+                                    </small>
+                                @endif
+                            </div>
                         @endif
 
-                        <div class="cw-occ-bar" title="{{ __('messages.taux_occupation') }}: {{ $espace->taux_occupation }}%">
-                            <div class="cw-occ-fill" style="width:{{ $espace->taux_occupation }}%"></div>
-                        </div>
-
-                        <div class="cw-card-price">
-                            {{ number_format($espace->prix_heure, 0) }}MAD
-                            <small style="font-size:.65em;opacity:.7">{{ __('messages.par_heure') }}</small>
-                            @if($espace->prix_journee)
-                                <small style="font-size:.65em;opacity:.6;margin-left:.5rem">
-                                    | {{ number_format($espace->prix_journee, 0) }}MAD/j
-                                </small>
-                            @endif
-                        </div>
-
+                        {{-- Actions --}}
                         <div class="cw-card-actions">
-                            <a wire:navigate href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-primary cw-btn-sm">
-                                <i class="fas fa-calendar-plus"></i> {{ __('messages.reserver') }}
-                            </a>
-                            <a wire:navigate href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-outline cw-btn-sm">
-                                {{ __('messages.voir_detail') }}
-                            </a>
+                            @if($espace->type !== 'non_reservable')
+                                <a wire:navigate href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-primary cw-btn-sm">
+                                    <i class="fas fa-calendar-plus"></i> {{ __('messages.reserver') }}
+                                </a>
+                                <a wire:navigate href="{{ route('espaces.show', $espace) }}" class="cw-btn cw-btn-outline cw-btn-sm">
+                                    {{ __('messages.voir_detail') }}
+                                </a>
+                            @else
+                                <span style="font-size:.8rem;color:var(--gray-400);font-style:italic">
+                                    <i class="fas fa-info-circle"></i> {{ __('messages.non_reservable') }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -129,8 +147,8 @@
         @endif
     </div>
 
-   {{-- Pagination avec boutons colorés --}}
-@if(!$espaces->isEmpty() && $espaces->lastPage() > 1)
+    {{-- Pagination moderne et stylisée --}}
+    @if($espaces->hasPages())
     <div class="cw-pagination">
         {{-- Bouton Précédent --}}
         @if($espaces->onFirstPage())
@@ -139,13 +157,10 @@
                 <span>{{ app()->getLocale() === 'en' ? 'Previous' : 'Précédent' }}</span>
             </span>
         @else
-            <a href="{{ $espaces->previousPageUrl() }}"
-               wire:navigate
-               class="cw-page-btn cw-page-btn-prev"
-               aria-label="{{ app()->getLocale() === 'en' ? 'Previous page' : 'Page précédente' }}">
+            <button wire:click="previousPage" wire:loading.attr="disabled" class="cw-page-btn cw-page-btn-prev">
                 <i class="fas fa-chevron-left"></i>
                 <span>{{ app()->getLocale() === 'en' ? 'Previous' : 'Précédent' }}</span>
-            </a>
+            </button>
         @endif
 
         {{-- Numéros de pages --}}
@@ -158,12 +173,7 @@
 
             {{-- Première page --}}
             @if($currentPage > $range + 1)
-                <a href="{{ $espaces->url(1) }}" 
-                   wire:navigate 
-                   class="cw-page-btn cw-page-btn-number"
-                   aria-label="{{ __('messages.page') }} 1">
-                    1
-                </a>
+                <button wire:click="gotoPage(1)" class="cw-page-btn cw-page-btn-number">1</button>
                 @if($currentPage > $range + 2)
                     <span class="cw-page-ellipsis">…</span>
                 @endif
@@ -172,19 +182,13 @@
             {{-- Pages autour de la page courante --}}
             @for($page = max(1, $currentPage - $range); $page <= min($lastPage, $currentPage + $range); $page++)
                 @if($page == $currentPage)
-                    <span class="cw-page-btn cw-page-btn-number active" 
-                          aria-current="page"
-                          aria-label="{{ __('messages.page') }} {{ $page }}, {{ __('messages.page_actuelle') }}">
+                    <span class="cw-page-btn cw-page-btn-number active" aria-current="page">
                         {{ $page }}
-                        <span class="cw-page-active-indicator"></span>
                     </span>
                 @else
-                    <a href="{{ $espaces->url($page) }}"
-                       wire:navigate
-                       class="cw-page-btn cw-page-btn-number"
-                       aria-label="{{ __('messages.page') }} {{ $page }}">
+                    <button wire:click="gotoPage({{ $page }})" class="cw-page-btn cw-page-btn-number">
                         {{ $page }}
-                    </a>
+                    </button>
                 @endif
             @endfor
 
@@ -193,24 +197,18 @@
                 @if($currentPage < $lastPage - $range - 1)
                     <span class="cw-page-ellipsis">…</span>
                 @endif
-                <a href="{{ $espaces->url($lastPage) }}"
-                   wire:navigate
-                   class="cw-page-btn cw-page-btn-number"
-                   aria-label="{{ __('messages.page') }} {{ $lastPage }}">
+                <button wire:click="gotoPage({{ $lastPage }})" class="cw-page-btn cw-page-btn-number">
                     {{ $lastPage }}
-                </a>
+                </button>
             @endif
         </div>
 
         {{-- Bouton Suivant --}}
         @if($espaces->hasMorePages())
-            <a href="{{ $espaces->nextPageUrl() }}"
-               wire:navigate
-               class="cw-page-btn cw-page-btn-next"
-               aria-label="{{ app()->getLocale() === 'en' ? 'Next page' : 'Page suivante' }}">
+            <button wire:click="nextPage" wire:loading.attr="disabled" class="cw-page-btn cw-page-btn-next">
                 <span>{{ app()->getLocale() === 'en' ? 'Next' : 'Suivant' }}</span>
                 <i class="fas fa-chevron-right"></i>
-            </a>
+            </button>
         @else
             <span class="cw-page-btn cw-page-btn-next disabled" aria-disabled="true">
                 <span>{{ app()->getLocale() === 'en' ? 'Next' : 'Suivant' }}</span>
@@ -218,5 +216,5 @@
             </span>
         @endif
     </div>
-@endif
+    @endif
 </div>

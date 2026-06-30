@@ -15,8 +15,8 @@ class Espace extends Model
         'nom', 'type', 'description',
         'capacite_min', 'capacite_max',
         'prix_heure', 'prix_journee', 'prix_mois',
-        'photo_principale', 'equipements', 'adresse',
-        'latitude', 'longitude', 'actif',
+        'photo_principale', 'equipements',
+        'latitude', 'longitude', 'actif', 'nombre_bureaux',
     ];
 
     protected $casts = [
@@ -85,11 +85,12 @@ class Espace extends Model
     public function getTypeLabelAttribute(): string
     {
         return [
-            'bureau_individuel' => 'Bureau Individuel',
-            'bureau_prive'      => 'Bureau Privé',
-            'open_space'        => 'Open Space',
-            'salle_reunion'     => 'Salle de Réunion',
-            'salle_conference'  => 'Salle de Conférence',
+            'bureau_individuel'  => 'Bureau Individuel',
+            'bureau_prive'       => 'Bureau Privé',
+            'open_space_creatif' => 'Open Space Créatif',
+            'salle_reunion'      => 'Salle de Réunion',
+            'salle_conference'   => 'Salle de Conférence',
+            'non_reservable'     => 'Non Réservable',
         ][$this->type] ?? ucfirst(str_replace('_', ' ', $this->type));
     }
 
@@ -233,4 +234,3 @@ class Espace extends Model
         return (float) $this->prix_heure;
     }
 }
-

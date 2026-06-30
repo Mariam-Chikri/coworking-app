@@ -7,13 +7,14 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class AdminEspaces extends Component
 {
     use WithPagination, WithFileUploads;
 
     // =========================================================
-    // Filtres
+    // Filtres de liste
     // =========================================================
     public string $search       = '';
     public string $filterType   = '';
@@ -22,219 +23,287 @@ class AdminEspaces extends Component
     // =========================================================
     // État du modal
     // =========================================================
-    public bool    $showModal              = false;
-    public bool    $showDeleteModal        = false;
-    public ?int    $espaceId               = null;
+    public bool $showModal       = false;
+    public bool $showDeleteModal = false;
+    public ?int $espaceId        = null;
 
-    /**
-     * Chemin de la photo existante en base (STRING).
-     * Jamais mis dans $form[] pour éviter les conflits de validation.
-     */
-    public ?string $photoExistante         = null;
+    // =========================================================
+    // Champs du formulaire — propriétés INDIVIDUELLES
+    // =========================================================
+    public string $fNom          = '';
+    public string $fType         = 'bureau_individuel';
+    public string $fDescription  = '';
+    public string $fCapaciteMin  = '1';
+    public string $fCapaciteMax  = '1';
+    public string $fPrixHeure    = '0';
+    public string $fPrixJournee  = '';
+    public string $fPrixMois     = '';
+    public string $fNombreBureaux = '0';
+    public bool   $fActif        = true;
 
-    /**
-     * Nouveau fichier uploadé (TemporaryUploadedFile ou null).
-     * wire:model="nouvellePhoto" sur l'<input type="file">.
-     */
-    public $nouvellePhoto = null;
+    // Photo
+    public ?string $photoExistante     = null;
+    public $nouvellePhoto              = null;
+    public bool   $supprimerPhotoFlag  = false;
 
-    /** Demande de suppression de la photo existante au prochain save(). */
-    public bool $supprimerPhotoExistante   = false;
-
-    /** Données textuelles du formulaire (SANS photo). */
-    public array $form = [
-        'nom'          => '',
-        'type'         => 'bureau_individuel',
-        'description'  => '',
-        'capacite_min' => 1,
-        'capacite_max' => 1,
-        'prix_heure'   => 0,
-        'prix_journee' => null,
-        'prix_mois'    => null,
-        'adresse'      => '',
-        'actif'        => true,
+    // =========================================================
+    // Types d'espaces disponibles
+    // =========================================================
+    protected array $types = [
+        'bureau_individuel' => 'Bureau individuel',
+        'bureau_prive' => 'Bureau privé',
+        'open_space_creatif' => 'Open space créatif',
+        'salle_reunion' => 'Salle de réunion',
+        'salle_conference' => 'Salle de conférence',
+        'non_reservable' => 'Non réservable',
     ];
 
     // =========================================================
-    // Règles de validation — SANS gte: (bug Livewire sur tableaux imbriqués)
-    // =========================================================
-    protected function rules(): array
-    {
-        return [
-            'form.nom'          => 'required|string|max:100',
-            'form.type'         => 'required|in:bureau_individuel,bureau_prive,open_space,salle_reunion,salle_conference',
-            'form.description'  => 'nullable|string',
-            'form.capacite_min' => 'required|integer|min:1',
-            'form.capacite_max' => 'required|integer|min:1',
-            'form.prix_heure'   => 'required|numeric|min:0',
-            'form.prix_journee' => 'nullable|numeric|min:0',
-            'form.prix_mois'    => 'nullable|numeric|min:0',
-            'form.adresse'      => 'nullable|string|max:255',
-            'form.actif'        => 'boolean',
-            // photo validée séparément uniquement si un nouveau fichier est choisi
-            'nouvellePhoto'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ];
-    }
-
-    protected array $messages = [
-        'form.nom.required'        => 'Le nom est obligatoire.',
-        'form.capacite_min.min'    => 'La capacité min doit être ≥ 1.',
-        'form.capacite_max.min'    => 'La capacité max doit être ≥ 1.',
-        'form.prix_heure.required' => 'Le prix/heure est obligatoire.',
-        'nouvellePhoto.image'      => 'Le fichier doit être une image.',
-        'nouvellePhoto.mimes'      => 'Format accepté : JPG, PNG, WebP.',
-        'nouvellePhoto.max'        => 'Taille max : 2 Mo.',
-    ];
-
-    // =========================================================
-    // Réinitialiser la pagination
+    // Réinitialisation de la pagination sur filtre
     // =========================================================
     public function updatingSearch(): void       { $this->resetPage(); }
     public function updatingFilterType(): void   { $this->resetPage(); }
     public function updatingFilterStatut(): void { $this->resetPage(); }
 
     // =========================================================
-    // Ouvrir modal CREATE
+    // Réinitialiser les champs
+    // =========================================================
+    private function resetFields(): void
+    {
+        $this->fNom          = '';
+        $this->fType         = 'bureau_individuel';
+        $this->fDescription  = '';
+        $this->fCapaciteMin  = '1';
+        $this->fCapaciteMax  = '1';
+        $this->fPrixHeure    = '0';
+        $this->fPrixJournee  = '';
+        $this->fPrixMois     = '';
+        $this->fNombreBureaux = '0';
+        $this->fActif        = true;
+        $this->photoExistante    = null;
+        $this->nouvellePhoto     = null;
+        $this->supprimerPhotoFlag = false;
+
+        $this->resetErrorBag();
+    }
+    
+    public function updatedFType($value)
+    {
+        // Réinitialiser le nombre de bureaux si ce n'est pas un open_space_creatif
+        if ($value !== 'open_space_creatif') {
+            $this->fNombreBureaux = '0';
+        }
+        
+        // Si le type est non_reservable, réinitialiser les prix
+        if ($value === 'non_reservable') {
+            $this->fPrixHeure = '0';
+            $this->fPrixJournee = '';
+            $this->fPrixMois = '';
+        }
+    }
+
+    // =========================================================
+    // Ouvrir modal CRÉER
     // =========================================================
     public function openCreate(): void
     {
-        $this->espaceId              = null;
-        $this->photoExistante        = null;
-        $this->nouvellePhoto         = null;
-        $this->supprimerPhotoExistante = false;
-        $this->form = [
-            'nom'          => '',
-            'type'         => 'bureau_individuel',
-            'description'  => '',
-            'capacite_min' => 1,
-            'capacite_max' => 1,
-            'prix_heure'   => 0,
-            'prix_journee' => null,
-            'prix_mois'    => null,
-            'adresse'      => '',
-            'actif'        => true,
-        ];
-        $this->resetErrorBag();
+        $this->espaceId = null;
+        $this->resetFields();
+        $this->fNombreBureaux = '0';
         $this->showModal = true;
     }
 
     // =========================================================
-    // Ouvrir modal EDIT
+    // Ouvrir modal MODIFIER
     // =========================================================
     public function openEdit(int $id): void
     {
-        $e             = Espace::findOrFail($id);
-        $this->espaceId = $id;
+        $e = Espace::findOrFail($id);
 
-        // Données textuelles dans $form (PAS la photo)
-        $this->form = [
-            'nom'          => $e->nom ?? '',
-            'type'         => $e->type ?? 'bureau_individuel',
-            'description'  => $e->description ?? '',
-            'capacite_min' => $e->capacite_min ?? 1,
-            'capacite_max' => $e->capacite_max ?? 1,
-            'prix_heure'   => $e->prix_heure ?? 0,
-            'prix_journee' => $e->prix_journee,
-            'prix_mois'    => $e->prix_mois,
-            'adresse'      => $e->adresse ?? '',
-            'actif'        => (bool) $e->actif,
-        ];
+        $this->espaceId      = $id;
+        $this->fNom          = (string) ($e->nom ?? '');
+        $this->fType         = (string) ($e->type ?? 'bureau_individuel');
+        $this->fDescription  = (string) ($e->description ?? '');
+        $this->fCapaciteMin  = (string) ($e->capacite_min ?? '1');
+        $this->fCapaciteMax  = (string) ($e->capacite_max ?? '1');
+        $this->fPrixHeure    = (string) ($e->prix_heure ?? '0');
+        $this->fPrixJournee  = $e->prix_journee ? (string) $e->prix_journee : '';
+        $this->fPrixMois     = $e->prix_mois    ? (string) $e->prix_mois    : '';
+        $this->fNombreBureaux = (string) ($e->nombre_bureaux ?? '0');
+        $this->fActif        = (bool) $e->actif;
 
-        // Photo existante dans sa propre propriété string
-        $this->photoExistante        = $e->photo_principale;
-        $this->nouvellePhoto         = null;
-        $this->supprimerPhotoExistante = false;
+        $this->photoExistante    = $e->photo_principale;
+        $this->nouvellePhoto     = null;
+        $this->supprimerPhotoFlag = false;
 
         $this->resetErrorBag();
         $this->showModal = true;
     }
 
     // =========================================================
-    // Bouton "Supprimer la photo"
+    // Demander suppression de la photo existante
     // =========================================================
     public function supprimerPhoto(): void
     {
-        $this->supprimerPhotoExistante = true;
-        $this->photoExistante          = null;
-        $this->dispatch('toast', message: 'Photo supprimée (enregistrez pour confirmer).', type: 'info');
+        $this->supprimerPhotoFlag = true;
+        $this->photoExistante     = null;
     }
 
     // =========================================================
-    // SAUVEGARDER — appelé par wire:click sur le bouton (pas wire:submit)
+    // Récupérer les colonnes disponibles de la table espaces
+    // =========================================================
+    private function getAvailableColumns(): array
+    {
+        static $columns = null;
+        if ($columns === null) {
+            try {
+                $columns = \Schema::getColumnListing('espaces');
+            } catch (\Throwable $e) {
+                $columns = [];
+            }
+        }
+        return $columns;
+    }
+
+    // =========================================================
+    // SAUVEGARDER
     // =========================================================
     public function save(): void
     {
-        // Validation manuelle de capacite_max >= capacite_min
-        if ((int)$this->form['capacite_max'] < (int)$this->form['capacite_min']) {
-            $this->addError('form.capacite_max', 'La capacité max doit être ≥ à la capacité min.');
+        // ✅ Validation conditionnelle selon le type
+        $rules = [
+            'fNom' => 'required|string|max:100',
+            'fType' => 'required|in:' . implode(',', array_keys($this->types)),
+            'fCapaciteMin' => 'required|integer|min:1',
+            'fCapaciteMax' => 'required|integer|min:1',
+            'fPrixJournee' => 'nullable|numeric|min:0',
+            'fPrixMois' => 'nullable|numeric|min:0',
+            'fNombreBureaux' => 'nullable|integer|min:0',
+            'nouvellePhoto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+        ];
+
+        // ✅ Prix/heure obligatoire sauf pour non_reservable
+        if ($this->fType !== 'non_reservable') {
+            $rules['fPrixHeure'] = 'required|numeric|min:0';
+        } else {
+            $rules['fPrixHeure'] = 'nullable|numeric|min:0';
+        }
+
+        // ✅ Nombre de bureaux obligatoire pour open_space_creatif
+        if ($this->fType === 'open_space_creatif') {
+            $rules['fNombreBureaux'] = 'required|integer|min:5|max:500';
+        }
+
+        $this->validate($rules, [
+            'fNom.required' => 'Le nom est obligatoire.',
+            'fNombreBureaux.required' => 'Le nombre de bureaux est obligatoire pour les open spaces créatifs.',
+            'fNombreBureaux.min' => 'Le nombre de bureaux doit être au minimum 5.',
+            'fNombreBureaux.max' => 'Le nombre de bureaux ne peut pas dépasser 500.',
+            'fCapaciteMin.min' => 'La capacité min doit être ≥ 1.',
+            'fCapaciteMax.min' => 'La capacité max doit être ≥ 1.',
+            'fPrixHeure.required' => 'Le prix/heure est obligatoire pour les espaces réservables.',
+            'nouvellePhoto.image' => 'Le fichier doit être une image.',
+            'nouvellePhoto.mimes' => 'Format accepté : JPG, PNG, WebP.',
+            'nouvellePhoto.max' => 'Taille max : 20 Mo.',
+        ]);
+
+        // ✅ Vérification capacite_max >= capacite_min
+        if ((int)$this->fCapaciteMax < (int)$this->fCapaciteMin) {
+            $this->addError('fCapaciteMax', 'La capacité max doit être ≥ à la capacité min.');
             return;
         }
 
-        $this->validate();
-
-        // Données textuelles
+        // ✅ Préparer les données
         $data = [
-            'nom'          => trim($this->form['nom']),
-            'type'         => $this->form['type'],
-            'description'  => $this->form['description'],
-            'capacite_min' => (int) $this->form['capacite_min'],
-            'capacite_max' => (int) $this->form['capacite_max'],
-            'prix_heure'   => (float) $this->form['prix_heure'],
-            'prix_journee' => $this->form['prix_journee'] ? (float) $this->form['prix_journee'] : null,
-            'prix_mois'    => $this->form['prix_mois'] ? (float) $this->form['prix_mois'] : null,
-            'adresse'      => $this->form['adresse'],
-            'actif'        => (bool) $this->form['actif'],
+            'nom'         => trim($this->fNom),
+            'type'        => $this->fType,
+            'description' => trim($this->fDescription) ?: null,
+            'actif'       => $this->fActif,
         ];
+
+        $columns = $this->getAvailableColumns();
+
+        if (in_array('capacite_min', $columns)) {
+            $data['capacite_min'] = (int) $this->fCapaciteMin;
+        }
+        if (in_array('capacite_max', $columns)) {
+            $data['capacite_max'] = (int) $this->fCapaciteMax;
+        } elseif (in_array('capacite', $columns)) {
+            $data['capacite'] = (int) $this->fCapaciteMax;
+        }
+        if (in_array('prix_heure', $columns)) {
+            $data['prix_heure'] = $this->fType === 'non_reservable' ? 0 : (float) $this->fPrixHeure;
+        }
+        if (in_array('prix_journee', $columns)) {
+            $data['prix_journee'] = $this->fType === 'non_reservable' ? null : ($this->fPrixJournee !== '' ? (float) $this->fPrixJournee : null);
+        }
+        if (in_array('prix_mois', $columns)) {
+            $data['prix_mois'] = $this->fType === 'non_reservable' ? null : ($this->fPrixMois !== '' ? (float) $this->fPrixMois : null);
+        }
+        if ($this->fType === 'open_space_creatif' && in_array('nombre_bureaux', $columns)) {
+            $data['nombre_bureaux'] = (int) $this->fNombreBureaux;
+        } elseif (in_array('nombre_bureaux', $columns)) {
+            $data['nombre_bureaux'] = null;
+        }
 
         try {
             if ($this->espaceId) {
-                // ─── MODIFICATION ─────────────────────────────
+                // ─── MODIFICATION ─────────────────────────────────────────
                 $espace = Espace::findOrFail($this->espaceId);
 
-                // 1. Supprimer la photo existante si demandé
-                if ($this->supprimerPhotoExistante && $espace->photo_principale) {
+                // Gestion photo : suppression de l'ancienne
+                if ($this->supprimerPhotoFlag && $espace->photo_principale) {
                     Storage::disk('public')->delete($espace->photo_principale);
-                    $data['photo_principale'] = null;
+                    if (in_array('photo_principale', $columns)) {
+                        $data['photo_principale'] = null;
+                    }
                 }
 
-                // 2. Remplacer par la nouvelle photo si fournie
+                // Gestion photo : nouvelle photo uploadée
                 if ($this->nouvellePhoto) {
-                    if (!$this->supprimerPhotoExistante && $espace->photo_principale) {
+                    if (!$this->supprimerPhotoFlag && $espace->photo_principale) {
                         Storage::disk('public')->delete($espace->photo_principale);
                     }
-                    $data['photo_principale'] = $this->nouvellePhoto->store('espaces', 'public');
+                    if (in_array('photo_principale', $columns)) {
+                        $data['photo_principale'] = $this->nouvellePhoto->store('espaces', 'public');
+                    }
                 }
 
                 $espace->update($data);
-                $this->dispatch('toast', message: 'Espace « ' . $data['nom'] . ' » mis à jour.', type: 'success');
+
+                $this->dispatch('toast', message: 'Espace « ' . $data['nom'] . ' » mis à jour avec succès.', type: 'success');
 
             } else {
-                // ─── CRÉATION ─────────────────────────────────
-                if ($this->nouvellePhoto) {
+                // ─── CRÉATION ─────────────────────────────────────────────
+                if ($this->nouvellePhoto && in_array('photo_principale', $columns)) {
                     $data['photo_principale'] = $this->nouvellePhoto->store('espaces', 'public');
                 }
+
                 Espace::create($data);
-                $this->dispatch('toast', message: 'Espace « ' . $data['nom'] . ' » créé.', type: 'success');
+
+                $this->dispatch('toast', message: 'Espace « ' . $data['nom'] . ' » créé avec succès.', type: 'success');
             }
 
             // Fermer le modal et réinitialiser
-            $this->dispatch('$refresh');
-            $this->showModal               = false;
-            $this->espaceId               = null;
-            $this->nouvellePhoto          = null;
-            $this->photoExistante         = null;
-            $this->supprimerPhotoExistante = false;
-            $this->form = [
-                'nom' => '', 'type' => 'bureau_individuel', 'description' => '',
-                'capacite_min' => 1, 'capacite_max' => 1,
-                'prix_heure' => 0, 'prix_journee' => null, 'prix_mois' => null,
-                'adresse' => '', 'actif' => true,
-            ];
-            $this->resetErrorBag();
+            $this->showModal = false;
+            $this->espaceId  = null;
+            $this->resetFields();
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('AdminEspaces::save error', [
+                'message' => $e->getMessage(),
+                'data'    => $data,
+            ]);
             $this->dispatch('toast', message: 'Erreur : ' . $e->getMessage(), type: 'error');
         }
+    }
+
+    // =========================================================
+    // Obtenir le libellé du type d'espace
+    // =========================================================
+    public function getTypeLabel(string $type): string
+    {
+        return $this->types[$type] ?? $type;
     }
 
     // =========================================================
@@ -245,7 +314,7 @@ class AdminEspaces extends Component
         $e = Espace::findOrFail($id);
         $e->update(['actif' => !$e->actif]);
         $this->dispatch('toast',
-            message: ($e->actif ? 'Espace désactivé' : 'Espace activé') . ' : ' . $e->nom,
+            message: ($e->fresh()->actif ? 'Espace activé' : 'Espace désactivé') . ' : ' . $e->nom,
             type: 'info'
         );
     }
@@ -255,21 +324,36 @@ class AdminEspaces extends Component
     // =========================================================
     public function confirmDelete(int $id): void
     {
-        $this->espaceId        = $id;
-        $this->showDeleteModal  = true;
+        $this->espaceId       = $id;
+        $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
-        $espace = Espace::findOrFail($this->espaceId);
-        if ($espace->photo_principale) {
-            Storage::disk('public')->delete($espace->photo_principale);
+        try {
+            $espace = Espace::findOrFail($this->espaceId);
+            if ($espace->photo_principale) {
+                Storage::disk('public')->delete($espace->photo_principale);
+            }
+            $nom = $espace->nom;
+            $espace->delete();
+            $this->showDeleteModal = false;
+            $this->espaceId       = null;
+            $this->dispatch('toast', message: 'Espace « ' . $nom . ' » supprimé.', type: 'info');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: 'Erreur : ' . $e->getMessage(), type: 'error');
         }
-        $nom = $espace->nom;
-        $espace->delete();
-        $this->showDeleteModal = false;
-        $this->espaceId        = null;
-        $this->dispatch('toast', message: 'Espace « ' . $nom . ' » supprimé.', type: 'info');
+    }
+
+    // =========================================================
+    // Réinitialiser tous les filtres
+    // =========================================================
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterType = '';
+        $this->filterStatut = '';
+        $this->resetPage();
     }
 
     // =========================================================
@@ -277,13 +361,13 @@ class AdminEspaces extends Component
     // =========================================================
     public function render()
     {
+        $columns = $this->getAvailableColumns();
+
         $espaces = Espace::query()
             ->when($this->search, fn($q) =>
-                // ► GROUPER les OR pour ne pas casser les AND des autres filtres
                 $q->where(fn($sub) =>
                     $sub->where('nom', 'like', "%{$this->search}%")
                         ->orWhere('description', 'like', "%{$this->search}%")
-                        ->orWhere('adresse', 'like', "%{$this->search}%")
                 )
             )
             ->when($this->filterType, fn($q) =>
@@ -296,11 +380,18 @@ class AdminEspaces extends Component
             ->orderBy('nom')
             ->paginate(12);
 
-        // Taux d'occupation moyen des espaces actifs ce mois
+        // Taux d'occupation moyen des espaces actifs
         $tauxMoyen = Espace::active()->get()
-            ->avg(fn($e) => $e->taux_occupation) ?? 0;
+            ->avg(fn($e) => $e->taux_occupation ?? 0) ?? 0;
 
-        return view('livewire.admin-espaces', compact('espaces', 'tauxMoyen'));
+        // Colonnes disponibles (pour affichage conditionnel)
+        $hasCapaciteMinMax  = in_array('capacite_min', $columns);
+        $hasPrixJourneeMois = in_array('prix_journee', $columns);
+        $hasPhoto           = in_array('photo_principale', $columns);
+
+        return view('livewire.admin-espaces', compact(
+            'espaces', 'tauxMoyen',
+            'hasCapaciteMinMax', 'hasPrixJourneeMois', 'hasPhoto'
+        ));
     }
 }
-

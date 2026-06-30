@@ -111,7 +111,12 @@
         </div>
         <div class="cw-about-grid">
             <div class="cw-about-card">
-                <div class="cw-about-card-img" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%)">☕</div>
+                <div class="cw-about-card-img" style="overflow:hidden;padding:0;background:#f3e8d7">
+                    <img src="{{ asset('images/cafe.png') }}"
+                         style="width:100%;height:100%;object-fit:cover;display:block"
+                         alt="{{ __('messages.coin_cafe_nom') }}"
+                         onerror="this.style.display='none';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.innerHTML='☕'">
+                </div>
                 <div class="cw-about-card-body">
                     <h3>{{ __('messages.coin_cafe_nom') }}</h3>
                     <p>{{ __('messages.coin_cafe_desc') }}</p>
@@ -121,7 +126,12 @@
                 </div>
             </div>
             <div class="cw-about-card">
-                <div class="cw-about-card-img" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)">🌿</div>
+                <div class="cw-about-card-img" style="overflow:hidden;padding:0;background:#d1f0e0">
+                    <img src="{{ asset('images/terrasse.png') }}"
+                         style="width:100%;height:100%;object-fit:cover;display:block"
+                         alt="{{ __('messages.terrasse_nom') }}"
+                         onerror="this.style.display='none';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.innerHTML='🌿'">
+                </div>
                 <div class="cw-about-card-body">
                     <h3>{{ __('messages.terrasse_nom') }}</h3>
                     <p>{{ __('messages.terrasse_desc') }}</p>
@@ -131,7 +141,12 @@
                 </div>
             </div>
             <div class="cw-about-card">
-                <div class="cw-about-card-img" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)">🛋️</div>
+                <div class="cw-about-card-img" style="overflow:hidden;padding:0;background:#e8d7f3">
+                    <img src="{{ asset('images/sieste.png') }}"
+                         style="width:100%;height:100%;object-fit:cover;display:block"
+                         alt="{{ __('messages.salon_nom') }}"
+                         onerror="this.style.display='none';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.innerHTML='🛋️'">
+                </div>
                 <div class="cw-about-card-body">
                     <h3>{{ __('messages.salon_nom') }}</h3>
                     <p>{{ __('messages.salon_desc') }}</p>
@@ -165,4 +180,5 @@
     </div>
 </section>
 @endsection
+
 

@@ -78,6 +78,12 @@ class AdminDashboard extends Component
             ->take(5)
             ->get()
             ->toArray();
+
+        // Déclencher la (ré)initialisation des graphiques côté JS
+        $this->dispatch('chartDataUpdated',
+            revenus: $this->revenusMensuels,
+            espaces: $this->espacesPopulaires
+        );
     }
 
     private function tauxOccupationGlobal(): float
@@ -116,3 +122,4 @@ class AdminDashboard extends Component
         return view('livewire.admin-dashboard', compact('reservationsRecentes'));
     }
 }
+

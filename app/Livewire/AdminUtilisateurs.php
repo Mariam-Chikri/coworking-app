@@ -39,6 +39,13 @@ class AdminUtilisateurs extends Component
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingFilterRole(): void { $this->resetPage(); }
 
+    // ✅ Vérifier si l'utilisateur est l'admin principal
+    private function isMainAdmin($userId): bool
+    {
+        $user = User::find($userId);
+        return $user && $user->email === 'admin@coworking.ma';
+    }
+
     public function openCreate(): void
     {
         $this->reset('userId');
@@ -48,6 +55,12 @@ class AdminUtilisateurs extends Component
 
     public function openEdit(int $id): void
     {
+        // ✅ Protection : Empêcher la modification de l'admin principal
+        if ($this->isMainAdmin($id)) {
+            $this->dispatch('toast', message: 'Ce compte est protégé et ne peut pas être modifié.', type: 'error');
+            return;
+        }
+
         $u = User::findOrFail($id);
         $this->userId = $id;
         $this->form = [
@@ -68,6 +81,12 @@ class AdminUtilisateurs extends Component
         }
 
         if ($this->userId) {
+            // ✅ Protection supplémentaire avant la sauvegarde
+            if ($this->isMainAdmin($this->userId)) {
+                $this->dispatch('toast', message: 'Ce compte est protégé et ne peut pas être modifié.', type: 'error');
+                $this->showModal = false;
+                return;
+            }
             User::findOrFail($this->userId)->update($data);
             $this->dispatch('toast', message: 'Utilisateur mis à jour', type: 'success');
         } else {
@@ -82,10 +101,18 @@ class AdminUtilisateurs extends Component
 
     public function toggleAdmin(int $id): void
     {
+        // ✅ Protection : Empêcher de modifier ses propres droits
         if ($id === auth()->id()) {
-            $this->dispatch('toast', message: 'Impossible de modifier votre propre rôle', type: 'error');
+            $this->dispatch('toast', message: 'Impossible de modifier votre propre rôle.', type: 'error');
             return;
         }
+
+        // ✅ Protection : Empêcher de modifier l'admin principal
+        if ($this->isMainAdmin($id)) {
+            $this->dispatch('toast', message: 'Ce compte est protégé et ne peut pas être modifié.', type: 'error');
+            return;
+        }
+
         $u = User::findOrFail($id);
         $u->update(['is_admin' => !$u->is_admin]);
         $this->dispatch('toast', message: $u->is_admin ? 'Admin accordé' : 'Admin révoqué', type: 'info');
@@ -93,16 +120,31 @@ class AdminUtilisateurs extends Component
 
     public function confirmDelete(int $id): void
     {
+        // ✅ Protection : Empêcher de supprimer son propre compte
         if ($id === auth()->id()) {
-            $this->dispatch('toast', message: 'Impossible de supprimer votre propre compte', type: 'error');
+            $this->dispatch('toast', message: 'Impossible de supprimer votre propre compte.', type: 'error');
             return;
         }
+
+        // ✅ Protection : Empêcher de supprimer l'admin principal
+        if ($this->isMainAdmin($id)) {
+            $this->dispatch('toast', message: 'Ce compte est protégé et ne peut pas être supprimé.', type: 'error');
+            return;
+        }
+
         $this->userId = $id;
         $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
+        // ✅ Protection supplémentaire avant la suppression
+        if ($this->isMainAdmin($this->userId)) {
+            $this->dispatch('toast', message: 'Ce compte est protégé et ne peut pas être supprimé.', type: 'error');
+            $this->showDeleteModal = false;
+            return;
+        }
+
         User::findOrFail($this->userId)->delete();
         $this->showDeleteModal = false;
         $this->userId = null;

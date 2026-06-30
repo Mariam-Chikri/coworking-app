@@ -24,6 +24,33 @@ class User extends Authenticatable
         'is_admin' => 'boolean',
     ];
 
+    // =========================================================
+    // ✅ MÉTHODE ADMIN UNIQUE (CORRIGÉE)
+    // =========================================================
+
+    /**
+     * Vérifie si l'utilisateur est un administrateur.
+     */
+    public function isAdmin(): bool
+    {
+        // ✅ Vérifier si la colonne 'is_admin' existe et est à true
+        if (isset($this->is_admin)) {
+            return (bool) $this->is_admin;
+        }
+        
+        // ✅ Fallback: vérifier si la colonne 'role' existe (si vous l'ajoutez plus tard)
+        if (isset($this->role)) {
+            return $this->role === 'admin';
+        }
+        
+        // ✅ Fallback ultime: l'utilisateur avec ID 1 est admin
+        return $this->id === 1;
+    }
+
+    // =========================================================
+    // Relations
+    // =========================================================
+
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
@@ -47,10 +74,5 @@ class User extends Authenticatable
     public function factures()
     {
         return $this->hasMany(Facture::class);
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->is_admin;
     }
 }

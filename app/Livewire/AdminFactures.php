@@ -17,7 +17,9 @@ class AdminFactures extends Component
     public string $dateFin = '';
 
     public bool $showModal = false;
+    public bool $showDeleteModal = false; // ✅ AJOUT
     public ?Facture $selected = null;
+    public ?int $deleteId = null; // ✅ AJOUT
 
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingFilterStatut(): void { $this->resetPage(); }
@@ -42,6 +44,27 @@ class AdminFactures extends Component
     {
         Facture::findOrFail($id)->update(['statut' => 'emise', 'date_paiement' => null]);
         $this->dispatch('toast', message: 'Statut remis à "émise"', type: 'info');
+    }
+
+    // ✅ AJOUTER CETTE MÉTHODE
+    public function confirmDelete(int $id): void
+    {
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    // ✅ AJOUTER CETTE MÉTHODE
+    public function delete(): void
+    {
+        try {
+            $facture = Facture::findOrFail($this->deleteId);
+            $facture->delete();
+            $this->showDeleteModal = false;
+            $this->deleteId = null;
+            $this->dispatch('toast', message: 'Facture supprimée avec succès.', type: 'success');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', message: 'Erreur lors de la suppression.', type: 'error');
+        }
     }
 
     public function render()

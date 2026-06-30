@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,6 +22,14 @@
 
     @livewireStyles
     @stack('styles')
+
+    <script>
+        // Appliquer le thème avant le rendu pour éviter le flash
+        (function() {
+            var saved = localStorage.getItem('cw-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
 </head>
 <body class="cw-body">
 
@@ -38,7 +46,7 @@
             <li><a href="{{ route('espaces.index') }}" class="{{ request()->routeIs('espaces.*') ? 'active' : '' }}" wire:navigate>{{ __('messages.espaces') }}</a></li>
             @auth
                 <li><a href="{{ route('reservations.index') }}" class="{{ request()->routeIs('reservations.*') ? 'active' : '' }}" wire:navigate>{{ __('messages.mes_reservations') }}</a></li>
-                <li><a href="{{ route('favoris') }}" class="{{ request()->routeIs('favoris') ? 'active' : '' }}" wire:navigate><i class="fas fa-heart"></i></a></li>
+                <li><a href="{{ route('favoris') }}" class="{{ request()->routeIs('favoris') ? 'active' : '' }}" wire:navigate><i class="fas fa-heart"></i> {{ __('messages.mes_favoris') }}</a></li>
                 @if(auth()->user()->is_admin)
                     <li><a href="{{ route('admin.dashboard') }}" class="cw-badge-admin" wire:navigate>Admin</a></li>
                 @endif
@@ -52,6 +60,14 @@
                 <span>|</span>
                 <a href="{{ route('lang.switch', 'en') }}" class="{{ app()->getLocale() === 'en' ? 'active' : '' }}" wire:navigate>EN</a>
             </div>
+
+            <!-- ✅ Bouton Mode Sombre -->
+            <button id="darkModeToggle"
+                    class="cw-dark-toggle"
+                    title="{{ app()->getLocale() === 'en' ? 'Toggle dark mode' : 'Basculer mode sombre' }}"
+                    aria-label="Toggle dark mode">
+                <i class="fas fa-moon" id="darkModeIcon"></i>
+            </button>
 
             @guest
                 <a href="{{ route('login') }}" class="cw-btn cw-btn-outline" wire:navigate>{{ __('messages.connexion') }}</a>
@@ -67,7 +83,7 @@
                         <a href="{{ route('profile') }}" wire:navigate><i class="fas fa-user"></i> {{ __('messages.mon_profil') }}</a>
                         <a href="{{ route('reservations.index') }}" wire:navigate><i class="fas fa-calendar"></i> {{ __('messages.mes_reservations') }}</a>
                         <a href="{{ route('factures.index') }}" wire:navigate><i class="fas fa-file-invoice"></i> {{ __('messages.mes_factures') }}</a>
-                        <a href="{{ route('favoris') }}" wire:navigate><i class="fas fa-heart"></i> {{ __('messages.favoris') }}</a>
+                        <a href="{{ route('favoris') }}" wire:navigate><i class="fas fa-heart"></i> {{ __('messages.mes_favoris') }}</a>
                         <hr>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -92,8 +108,13 @@
         <a href="{{ route('reservations.index') }}" wire:navigate>{{ __('messages.mes_reservations') }}</a>
         <a href="{{ route('favoris') }}" wire:navigate>{{ __('messages.favoris') }}</a>
     @endauth
-    <div class="cw-lang-switcher">
-        <a href="{{ route('lang.switch', 'fr') }}" wire:navigate>FR</a> | <a href="{{ route('lang.switch', 'en') }}" wire:navigate>EN</a>
+    <div style="display:flex;align-items:center;gap:1rem;padding:.4rem 0">
+        <div class="cw-lang-switcher">
+            <a href="{{ route('lang.switch', 'fr') }}" wire:navigate>FR</a> | <a href="{{ route('lang.switch', 'en') }}" wire:navigate>EN</a>
+        </div>
+        <button id="darkModeToggleMobile" class="cw-dark-toggle" style="width:32px;height:32px;font-size:.85rem">
+            <i class="fas fa-moon" id="darkModeIconMobile"></i>
+        </button>
     </div>
 </div>
 
@@ -135,9 +156,9 @@
         </div>
         <div class="cw-footer-contact">
             <h4>Contact</h4>
-            <p><i class="fas fa-map-marker-alt"></i> 42 Rue du Coworking, Paris</p>
-            <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
-            <p><i class="fas fa-envelope"></i> contact@coworking.fr</p>
+            <p><i class="fas fa-map-marker-alt"></i> 42 Rue du Marjane, Maroc</p>
+            <p><i class="fas fa-phone"></i> +212 1 23 45 67 89</p>
+            <p><i class="fas fa-envelope"></i> contact@coworking.ma</p>
         </div>
     </div>
     <div class="cw-footer-bottom">
@@ -152,6 +173,64 @@
 
 <script>
     // ============================================
+    // ✅ MODE SOMBRE
+    // ============================================
+    (function() {
+        'use strict';
+
+        function getTheme() {
+            return localStorage.getItem('cw-theme') || 'light';
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('cw-theme', theme);
+
+            var icons = document.querySelectorAll('#darkModeIcon, #darkModeIconMobile');
+            icons.forEach(function(icon) {
+                if (theme === 'dark') {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+        }
+
+        function toggleTheme() {
+            var current = getTheme();
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        function initDarkMode() {
+            var btn = document.getElementById('darkModeToggle');
+            var btnMobile = document.getElementById('darkModeToggleMobile');
+
+            applyTheme(getTheme());
+
+            if (btn) {
+                btn.removeEventListener('click', toggleTheme);
+                btn.addEventListener('click', toggleTheme);
+            }
+            if (btnMobile) {
+                btnMobile.removeEventListener('click', toggleTheme);
+                btnMobile.addEventListener('click', toggleTheme);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDarkMode);
+        } else {
+            initDarkMode();
+        }
+
+        document.addEventListener('livewire:navigated', function() {
+            setTimeout(initDarkMode, 50);
+        });
+    })();
+
+    // ============================================
     // GESTION DU DROPDOWN UTILISATEUR (PUR JS)
     // ============================================
     (function() {
@@ -165,7 +244,6 @@
         function toggleDropdown(e) {
             e.stopPropagation();
             dropdownOpen = !dropdownOpen;
-            
             if (dropdownOpen) {
                 dropdown.classList.add('show');
                 if (chevron) chevron.style.transform = 'rotate(180deg)';
@@ -177,49 +255,32 @@
 
         function closeDropdown() {
             dropdownOpen = false;
-            dropdown.classList.remove('show');
+            if (dropdown) dropdown.classList.remove('show');
             if (chevron) chevron.style.transform = 'rotate(0deg)';
         }
 
-        // Initialisation
         function initDropdown() {
             if (button && dropdown) {
-                // Supprimer les anciens listeners pour éviter les doublons
                 button.removeEventListener('click', toggleDropdown);
-                // Ajouter le nouveau listener
                 button.addEventListener('click', toggleDropdown);
-                
-                // Fermer en cliquant ailleurs
                 document.removeEventListener('click', closeDropdown);
                 document.addEventListener('click', closeDropdown);
-                
-                // Empêcher la fermeture quand on clique dans le dropdown
-                dropdown.removeEventListener('click', function(e) { e.stopPropagation(); });
                 dropdown.addEventListener('click', function(e) { e.stopPropagation(); });
             }
         }
 
-        // Attendre que le DOM soit chargé
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initDropdown);
         } else {
             initDropdown();
         }
 
-        // Réinitialiser après navigation Livewire
         document.addEventListener('livewire:navigated', function() {
-            // Réinitialiser l'état du dropdown
-            if (dropdown) {
-                dropdown.classList.remove('show');
-            }
-            if (chevron) {
-                chevron.style.transform = 'rotate(0deg)';
-            }
+            if (dropdown) dropdown.classList.remove('show');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
             dropdownOpen = false;
-            // Réinitialiser les listeners
             setTimeout(initDropdown, 100);
         });
-
     })();
 
     // ============================================
@@ -230,9 +291,7 @@
         const mobileNav = document.getElementById('mobile-nav');
 
         function toggleMobileNav() {
-            if (mobileNav) {
-                mobileNav.classList.toggle('open');
-            }
+            if (mobileNav) mobileNav.classList.toggle('open');
         }
 
         function initHamburger() {
@@ -264,16 +323,14 @@
                     element.style.transition = 'opacity 0.5s ease';
                 }, 4000);
                 setTimeout(() => {
-                    if (element.parentNode) {
-                        element.remove();
-                    }
+                    if (element.parentNode) element.remove();
                 }, 4500);
             }
         }
 
         const successAlert = document.getElementById('flashSuccess');
         const errorAlert = document.getElementById('flashError');
-        
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
                 hideAlert(successAlert);
@@ -289,8 +346,6 @@
             hideAlert(document.getElementById('flashError'));
         });
     })();
-    
-    
 
     // ============================================
     // LIVEWIRE TOAST LISTENER
@@ -302,9 +357,9 @@
             toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { 
-                toast.classList.remove('show'); 
-                setTimeout(() => toast.remove(), 300); 
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
             }, 4000);
         });
     });

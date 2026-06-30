@@ -2,12 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AboutImageController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 */
+
 
 // Changement de langue (sans reload via session)
 Route::get('/lang/{locale}', function ($locale) {
@@ -102,6 +104,10 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/factures', fn() => view('admin.factures'))
                 ->name('factures');
-        });
+                   });
+ 
+            Route::delete('/delete-about-image/{section}', [AboutImageController::class, 'destroy'])
+               ->name('admin.delete-about-image');
+            
 });
 

@@ -1,49 +1,54 @@
 <div>
+
     {{-- ══════════════════════════════════════
          EN-TÊTE
     ═══════════════════════════════════════ --}}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
         <div>
             <h2 style="font-size:1.5rem;font-weight:700;margin:0">
-                <i class="fas fa-building" style="color:var(--primary);margin-right:0.5rem"></i>
-                Gestion des Espaces
+                <i class="fas fa-building" style="color:var(--primary)"></i>
+                {{ __('messages.gestion_espaces') }}
             </h2>
-            <p style="color:var(--gray-500);margin:0.25rem 0 0 0;font-size:0.9rem">
-                Gérez tous les espaces de coworking disponibles
+            <p style="color:var(--gray-500);margin:.25rem 0 0;font-size:.9rem">
+                {{ __('messages.admin_espaces_sous_titre') }}
             </p>
         </div>
-        <button wire:click="openCreate" class="cw-btn cw-btn-primary">
-            <i class="fas fa-plus"></i> Ajouter un espace
+        <button type="button" wire:click="openCreate" class="cw-btn cw-btn-primary">
+            <i class="fas fa-plus"></i> {{ __('messages.admin_espaces_ajouter') }}
         </button>
     </div>
 
     {{-- ══════════════════════════════════════
+         ALERTE MIGRATION MANQUANTE
+    ═══════════════════════════════════════ --}}
+    @if(!$hasCapaciteMinMax)
+    <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:.85rem 1.1rem;margin-bottom:1.25rem;font-size:.85rem;color:#92400e">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>{{ __('messages.admin_espaces_migration_manquante') }}</strong> — {{ __('messages.admin_espaces_migration_manquante_detail') }}<br>
+        {{ __('messages.admin_espaces_migration_executer') }}
+    </div>
+    @endif
+
+    {{-- ══════════════════════════════════════
          KPI
     ═══════════════════════════════════════ --}}
-    <div class="cw-admin-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:1.5rem">
+    <div class="cw-admin-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:1.5rem">
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon"><i class="fas fa-warehouse"></i></div>
-            <div><div class="cw-kpi-value">{{ $espaces->total() }}</div><div class="cw-kpi-label">Total espaces</div></div>
+            <div><div class="cw-kpi-value">{{ $espaces->total() }}</div><div class="cw-kpi-label">{{ __('messages.admin_espaces_total') }}</div></div>
         </div>
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-check-circle"></i></div>
-            <div><div class="cw-kpi-value">{{ App\Models\Espace::where('actif',true)->count() }}</div><div class="cw-kpi-label">Actifs</div></div>
+            <div><div class="cw-kpi-value">{{ App\Models\Espace::where('actif',true)->count() }}</div><div class="cw-kpi-label">{{ __('messages.actif') }}</div></div>
         </div>
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-pause-circle"></i></div>
-            <div><div class="cw-kpi-value">{{ App\Models\Espace::where('actif',false)->count() }}</div><div class="cw-kpi-label">Désactivés</div></div>
+            <div><div class="cw-kpi-value">{{ App\Models\Espace::where('actif',false)->count() }}</div><div class="cw-kpi-label">{{ __('messages.inactif') }}</div></div>
         </div>
         <div class="cw-kpi-card" title="% des heures disponibles ce mois réellement réservées">
             <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"><i class="fas fa-chart-line"></i></div>
-            <div><div class="cw-kpi-value">{{ round($tauxMoyen, 1) }}%</div><div class="cw-kpi-label">Taux d'occupation <i class="fas fa-info-circle" style="font-size:.7rem;opacity:.5"></i></div></div>
+            <div><div class="cw-kpi-value">{{ round($tauxMoyen,1) }}%</div><div class="cw-kpi-label">{{ __('messages.taux_occupation') }}</div></div>
         </div>
-    </div>
-
-    {{-- Explication taux d'occupation --}}
-    <div style="background:rgba(102,126,234,.06);border:1px solid rgba(102,126,234,.2);border-radius:8px;padding:.65rem 1rem;margin-bottom:1.25rem;font-size:.8rem;color:var(--gray-600)">
-        <i class="fas fa-info-circle" style="color:var(--primary)"></i>
-        <strong>Taux d'occupation</strong> = % des heures ouvrables du mois durant lesquelles l'espace est réservé.
-        Un espace ne peut être occupé que par <strong>un seul utilisateur à la fois</strong>.
     </div>
 
     {{-- ══════════════════════════════════════
@@ -53,82 +58,123 @@
         <div style="position:relative;flex:1;min-width:200px">
             <i class="fas fa-search" style="position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--gray-400);pointer-events:none"></i>
             <input wire:model.live.debounce.300ms="search" type="text"
-                   placeholder="Rechercher par nom, description, adresse…"
+                   placeholder="{{ __('messages.admin_espaces_rechercher') }}"
                    class="cw-input" style="padding-left:2.5rem" autocomplete="off">
         </div>
         <select wire:model.live="filterType" class="cw-select" style="width:auto;min-width:160px">
-            <option value="">Tous les types</option>
-            <option value="bureau_individuel">Bureau individuel</option>
-            <option value="bureau_prive">Bureau privé</option>
-            <option value="open_space">Open space</option>
-            <option value="salle_reunion">Salle de réunion</option>
-            <option value="salle_conference">Salle de conférence</option>
+            <option value="">{{ __('messages.tous_types') }}</option>
+            <option value="bureau_individuel">{{ __('messages.bureau_individuel') }}</option>
+            <option value="bureau_prive">{{ __('messages.bureau_prive') }}</option>
+            <option value="open_space_creatif">{{ __('messages.open_space_creatif') }}</option>
+            <option value="salle_reunion">{{ __('messages.salle_reunion') }}</option>
+            <option value="salle_conference">{{ __('messages.salle_conference') }}</option>
+            <option value="non_reservable">{{ __('messages.non_reservable') }}</option>
         </select>
         <select wire:model.live="filterStatut" class="cw-select" style="width:auto;min-width:140px">
-            <option value="">Tous les statuts</option>
-            <option value="1">Actif</option>
-            <option value="0">Désactivé</option>
+            <option value="">{{ __('messages.admin_espaces_tous_statuts') }}</option>
+            <option value="1">{{ __('messages.actif') }}</option>
+            <option value="0">{{ __('messages.inactif') }}</option>
         </select>
-        <button wire:click="$set('search','');$set('filterType','');$set('filterStatut','')"
+        <button type="button" wire:click="$set('search','');$set('filterType','');$set('filterStatut','')"
                 class="cw-btn cw-btn-outline">
-            <i class="fas fa-undo"></i> Réinitialiser
+            <i class="fas fa-undo"></i> {{ __('messages.reinitialiser') }}
         </button>
     </div>
 
     {{-- ══════════════════════════════════════
-         TABLEAU
+         TABLEAU AVEC SCROLL
     ═══════════════════════════════════════ --}}
-    <div class="cw-table-wrap">
-        <div wire:loading.delay.short style="text-align:center;padding:1.5rem">
+    <div class="cw-table-wrap-scroll" style="max-height:500px;overflow-y:auto;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--gray-100);position:relative">
+        <div wire:loading.delay style="text-align:center;padding:1.5rem;position:sticky;top:0;background:white;z-index:10">
             <i class="fas fa-spinner fa-spin" style="color:var(--primary);font-size:1.5rem"></i>
         </div>
-        <table class="cw-table" wire:loading.remove>
-            <thead>
+        <table class="cw-table" style="width:100%;border-collapse:collapse">
+            <thead style="position:sticky;top:0;z-index:5;background:white">
                 <tr>
-                    <th>#</th><th>Espace</th><th>Type</th><th>Capacité</th>
-                    <th>Prix</th><th>Taux occ.</th><th>Statut</th><th>Réservations</th><th>Actions</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:left">{{ __('messages.admin_espaces_id') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:left">{{ __('messages.admin_espaces_espace') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:left">{{ __('messages.admin_espaces_type') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:left">{{ __('messages.admin_espaces_capacite') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:left">{{ __('messages.admin_espaces_prix') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:left">{{ __('messages.admin_espaces_taux') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:left">{{ __('messages.admin_espaces_statut') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:center">{{ __('messages.admin_espaces_reservations') }}</th>
+                    <th style="padding:0.75rem 1rem;background:var(--gradient-soft);border-bottom:2px solid var(--gray-200);text-align:center;min-width:150px">{{ __('messages.admin_espaces_actions') }}</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($espaces as $espace)
-                <tr>
-                    <td style="font-size:.8rem;color:var(--gray-400)">{{ $espace->id }}</td>
-                    <td>
+                <tr style="border-bottom:1px solid var(--gray-100)">
+                    <td style="padding:0.75rem 1rem;font-size:.8rem;color:var(--gray-400)">{{ $espace->id }}</td>
+                    <td style="padding:0.75rem 1rem">
                         <div style="display:flex;align-items:center;gap:.75rem">
-                            <div style="width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0">
-                                <img src="{{ $espace->photo_url }}" alt="{{ $espace->nom }}"
+                            <div style="width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--gradient)">
+                                <img src="{{ $espace->photo_url }}"
+                                     alt="{{ $espace->nom }}"
                                      style="width:100%;height:100%;object-fit:cover"
-                                     onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $espace->id }}/44/44'">
+                                     onerror="this.onerror=null;this.style.display='none'">
                             </div>
                             <div>
                                 <strong>{{ $espace->nom }}</strong><br>
-                                <small style="color:var(--gray-400);font-size:.75rem">{{ Str::limit($espace->description ?? '—', 50) }}</small>
+                                <small style="color:var(--gray-400);font-size:.75rem">
+                                    {{ Str::limit($espace->description ?? '—', 45) }}
+                                </small>
                             </div>
                         </div>
                     </td>
-                    <td><span class="cw-pill" style="background:var(--gradient-soft);color:var(--primary)">{{ $espace->type_label }}</span></td>
-                    <td style="white-space:nowrap">{{ $espace->capacite_min ?? 1 }} – {{ $espace->capacite_max ?? 1 }} pers.</td>
-                    <td style="font-weight:600;color:var(--primary)">
-                        @if($espace->prix_heure > 0) {{ number_format($espace->prix_heure,0) }} DH/h
-                        @elseif($espace->prix_journee > 0) {{ number_format($espace->prix_journee,0) }} DH/j
-                        @elseif($espace->prix_mois > 0) {{ number_format($espace->prix_mois,0) }} DH/mois
-                        @else — @endif
+                    <td style="padding:0.75rem 1rem"><span class="cw-pill" style="background:var(--gradient-soft);color:var(--primary)">{{ $espace->type_label }}</span></td>
+                    <td style="padding:0.75rem 1rem;white-space:nowrap">
+                        @if($hasCapaciteMinMax)
+                            {{ $espace->capacite_min ?? 1 }} – {{ $espace->capacite_max ?? 1 }} {{ __('messages.admin_espaces_personnes') }}
+                            @if($espace->type === 'open_space_creatif' && isset($espace->nombre_bureaux))
+                                <br><small style="color:var(--gray-400);font-size:.7rem">{{ $espace->nombre_bureaux }} {{ __('messages.admin_espaces_bureaux') }}</small>
+                            @endif
+                        @else
+                            {{ $espace->capacite ?? '?' }} {{ __('messages.admin_espaces_personnes') }}
+                        @endif
                     </td>
-                    <td>
-                        <div style="display:flex;align-items:center;gap:.5rem">
-                            <div style="flex:1;height:6px;background:var(--gray-100);border-radius:999px;min-width:44px">
+                    <td style="padding:0.75rem 1rem;font-weight:600;color:var(--primary)">
+                        @if($espace->type === 'non_reservable')
+                            <span style="color:var(--gray-400)">_</span>
+                        @else
+                            {{ number_format($espace->prix_heure, 0) }} DH/h
+                            @if($hasPrixJourneeMois && $espace->prix_journee)
+                                <br>
+                                <small style="font-size:.72rem;color:var(--gray-400)">
+                                    {{ number_format($espace->prix_journee,0) }} DH/j
+                                </small>
+                            @endif
+                        @endif
+                    </td>
+                    <td style="padding:0.75rem 1rem">
+                        <div style="display:flex;align-items:center;gap:.4rem">
+                            <div style="flex:1;height:5px;background:var(--gray-100);border-radius:999px;min-width:40px">
                                 <div style="height:100%;width:{{ min($espace->taux_occupation,100) }}%;background:var(--gradient);border-radius:999px"></div>
                             </div>
                             <span style="font-size:.78rem;font-weight:600;color:var(--primary)">{{ $espace->taux_occupation }}%</span>
                         </div>
                     </td>
-                    <td><span class="cw-statut-badge {{ $espace->actif ? 'confirmee' : 'annulee' }}">{{ $espace->actif ? 'Actif' : 'Désactivé' }}</span></td>
-                    <td style="text-align:center">{{ $espace->reservations_count ?? 0 }}</td>
-                    <td>
-                        <div style="display:flex;gap:.4rem">
-                            <button wire:click="openEdit({{ $espace->id }})" class="cw-btn cw-btn-outline cw-btn-xs" title="Modifier"><i class="fas fa-edit"></i></button>
-                            <button wire:click="toggleActif({{ $espace->id }})" class="cw-btn cw-btn-outline cw-btn-xs" title="{{ $espace->actif ? 'Désactiver' : 'Activer' }}"><i class="fas fa-{{ $espace->actif ? 'pause' : 'play' }}"></i></button>
-                            <button wire:click="confirmDelete({{ $espace->id }})" class="cw-btn cw-btn-danger cw-btn-xs" title="Supprimer"><i class="fas fa-trash"></i></button>
+                    <td style="padding:0.75rem 1rem">
+                        <span class="cw-statut-badge {{ $espace->actif ? 'confirmee' : 'annulee' }}">
+                            {{ $espace->actif ? __('messages.actif') : __('messages.inactif') }}
+                        </span>
+                    </td>
+                    <td style="padding:0.75rem 1rem;text-align:center">{{ $espace->reservations_count ?? 0 }}</td>
+                    <td style="padding:0.75rem 1rem;text-align:center">
+                        <div style="display:flex;gap:.35rem;justify-content:center">
+                            <button type="button" wire:click="openEdit({{ $espace->id }})"
+                                    class="cw-btn cw-btn-outline cw-btn-xs" title="{{ __('messages.admin_espaces_modifier') }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" wire:click="toggleActif({{ $espace->id }})"
+                                    class="cw-btn cw-btn-outline cw-btn-xs"
+                                    title="{{ $espace->actif ? __('messages.admin_espaces_desactiver') : __('messages.admin_espaces_activer') }}">
+                                <i class="fas fa-{{ $espace->actif ? 'pause' : 'play' }}"></i>
+                            </button>
+                            <button type="button" wire:click="confirmDelete({{ $espace->id }})"
+                                    class="cw-btn cw-btn-danger cw-btn-xs" title="{{ __('messages.admin_espaces_supprimer') }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -136,219 +182,325 @@
                 <tr>
                     <td colspan="9" style="text-align:center;padding:3rem;color:var(--gray-400)">
                         <i class="fas fa-search" style="font-size:2rem;display:block;margin-bottom:.75rem;color:var(--gray-200)"></i>
-                        Aucun espace trouvé.<br><small>Modifiez les filtres ou ajoutez un espace.</small>
+                        {{ __('messages.admin_espaces_aucun') }}
+                        <br><small>{{ __('messages.admin_espaces_aucun_detail') }}</small>
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div style="margin-top:1.5rem">{{ $espaces->links() }}</div>
 
+    {{-- Compteur --}}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding:0.5rem 0;font-size:.85rem;color:var(--gray-500)">
+        <span>
+            <i class="fas fa-database" style="color:var(--primary);margin-right:0.5rem"></i>
+            <strong>{{ $espaces->total() }}</strong> 
+            {{ app()->getLocale() === 'en' ? 'spaces displayed' : 'espaces affichés' }}
+        </span>
+        <span style="display:flex;align-items:center;gap:0.5rem">
+            <i class="fas fa-arrow-down" style="color:var(--primary)"></i>
+            {{ app()->getLocale() === 'en' ? 'Scroll to view more' : 'Scrollez pour voir plus' }}
+        </span>
+    </div>
 
-    {{-- ══════════════════════════════════════════════════════════════
+    {{-- ══════════════════════════════════════
+         PAGINATION PERSONNALISÉE
+    ═══════════════════════════════════════ --}}
+    @if($espaces->hasPages())
+    <div class="cw-pagination-wrapper">
+        <div class="cw-pagination">
+            {{-- Bouton Précédent --}}
+            @if($espaces->onFirstPage())
+                <span class="cw-page-btn cw-page-btn-prev disabled" aria-disabled="true">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>{{ app()->getLocale() === 'en' ? 'Previous' : __('messages.admin_espaces_precedent') }}</span>
+                </span>
+            @else
+                <button wire:click="previousPage" wire:loading.attr="disabled" class="cw-page-btn cw-page-btn-prev">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>{{ app()->getLocale() === 'en' ? 'Previous' : __('messages.admin_espaces_precedent') }}</span>
+                </button>
+            @endif
+
+            {{-- Numéros de pages --}}
+            <div class="cw-page-numbers">
+                @php
+                    $currentPage = $espaces->currentPage();
+                    $lastPage = $espaces->lastPage();
+                    $range = 2;
+                @endphp
+
+                @if($currentPage > $range + 1)
+                    <button wire:click="gotoPage(1)" class="cw-page-btn cw-page-btn-number">1</button>
+                    @if($currentPage > $range + 2)
+                        <span class="cw-page-ellipsis">…</span>
+                    @endif
+                @endif
+
+                @for($page = max(1, $currentPage - $range); $page <= min($lastPage, $currentPage + $range); $page++)
+                    @if($page == $currentPage)
+                        <span class="cw-page-btn cw-page-btn-number active" aria-current="page">
+                            {{ $page }}
+                        </span>
+                    @else
+                        <button wire:click="gotoPage({{ $page }})" class="cw-page-btn cw-page-btn-number">
+                            {{ $page }}
+                        </button>
+                    @endif
+                @endfor
+
+                @if($currentPage < $lastPage - $range)
+                    @if($currentPage < $lastPage - $range - 1)
+                        <span class="cw-page-ellipsis">…</span>
+                    @endif
+                    <button wire:click="gotoPage({{ $lastPage }})" class="cw-page-btn cw-page-btn-number">
+                        {{ $lastPage }}
+                    </button>
+                @endif
+            </div>
+
+            {{-- Bouton Suivant --}}
+            @if($espaces->hasMorePages())
+                <button wire:click="nextPage" wire:loading.attr="disabled" class="cw-page-btn cw-page-btn-next">
+                    <span>{{ app()->getLocale() === 'en' ? 'Next' : __('messages.admin_espaces_suivant') }}</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            @else
+                <span class="cw-page-btn cw-page-btn-next disabled" aria-disabled="true">
+                    <span>{{ app()->getLocale() === 'en' ? 'Next' : __('messages.admin_espaces_suivant') }}</span>
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            @endif
+        </div>
+    </div>
+    @endif
+
+    {{-- ══════════════════════════════════════════════════════════════════════
          MODAL CRÉER / MODIFIER
-         ► Pas de <form> avec wire:submit pour éviter les rechargements.
-           Le bouton "Sauvegarder" utilise wire:click="save" (type="button").
-    ══════════════════════════════════════════════════════════════ --}}
+    ══════════════════════════════════════════════════════════════════════ --}}
     @if($showModal)
     <div class="cw-modal-overlay" wire:click.self="$set('showModal',false)">
         <div class="cw-modal" style="max-width:640px;max-height:92vh;overflow-y:auto">
 
             {{-- En-tête --}}
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-                <h3 style="margin:0;font-size:1.15rem;font-weight:700">
+                <h3 style="margin:0;font-size:1.1rem;font-weight:700">
                     <i class="fas fa-{{ $espaceId ? 'edit' : 'plus' }}" style="color:var(--primary)"></i>
-                    {{ $espaceId ? 'Modifier l\'espace' : 'Nouvel espace' }}
+                    {{ $espaceId ? __('messages.admin_espaces_modal_titre_modifier') : __('messages.admin_espaces_modal_titre_creer') }}
                 </h3>
-                <button wire:click="$set('showModal',false)"
-                        type="button"
+                <button type="button" wire:click="$set('showModal',false)"
                         style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--gray-400)">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            {{-- ── Contenu du formulaire (pas de <form>, tout par wire:model + wire:click) ── --}}
+            {{-- Formulaire — propriétés individuelles --}}
             <div style="display:grid;gap:1.1rem">
 
                 {{-- Nom --}}
                 <div class="cw-form-group">
-                    <label class="cw-label">Nom de l'espace *</label>
-                    <input wire:model="form.nom" type="text" class="cw-input"
-                           placeholder="Ex : Bureau Premium A" autocomplete="off">
-                    @error('form.nom')<span class="cw-form-error">{{ $message }}</span>@enderror
+                    <label class="cw-label">{{ __('messages.admin_espaces_nom') }} *</label>
+                    <input wire:model="fNom"
+                           type="text"
+                           class="cw-input @error('fNom') cw-input-error @enderror"
+                           placeholder="{{ __('messages.admin_espaces_nom_placeholder') }}"
+                           autocomplete="off">
+                    @error('fNom')<span class="cw-form-error">{{ $message }}</span>@enderror
                 </div>
 
                 {{-- Type --}}
                 <div class="cw-form-group">
-                    <label class="cw-label">Type d'espace *</label>
-                    <select wire:model="form.type" class="cw-select">
-                        <option value="bureau_individuel">Bureau individuel</option>
-                        <option value="bureau_prive">Bureau privé</option>
-                        <option value="open_space">Open space</option>
-                        <option value="salle_reunion">Salle de réunion</option>
-                        <option value="salle_conference">Salle de conférence</option>
+                    <label class="cw-label">{{ __('messages.admin_espaces_type_label') }} *</label>
+                    <select wire:model.live="fType" class="cw-select">
+                        <option value="">{{ __('messages.tous_types') }}</option>
+                        <option value="bureau_individuel">{{ __('messages.bureau_individuel') }}</option>
+                        <option value="bureau_prive">{{ __('messages.bureau_prive') }}</option>
+                        <option value="open_space_creatif">{{ __('messages.open_space_creatif') }}</option>
+                        <option value="salle_reunion">{{ __('messages.salle_reunion') }}</option>
+                        <option value="salle_conference">{{ __('messages.salle_conference') }}</option>
+                        <option value="non_reservable">{{ __('messages.non_reservable') }}</option>
                     </select>
-                    @error('form.type')<span class="cw-form-error">{{ $message }}</span>@enderror
+                    @error('fType')<span class="cw-form-error">{{ $message }}</span>@enderror
+                </div>
+
+                {{-- Nombre de bureaux (Open Space Créatif uniquement) --}}
+                <div wire:key="nombre-bureaux-container" 
+                     x-data="{ show: $wire.fType === 'open_space_creatif' }"
+                     x-show="show"
+                     x-transition.duration.300ms
+                     style="background:#f0f9ff;border-left:3px solid #0ea5e9;padding:.75rem 1rem;border-radius:.5rem"
+                     x-init="$watch('$wire.fType', value => show = value === 'open_space_creatif')">
+                    <div class="cw-form-group">
+                        <label class="cw-label" style="color:#0369a1">
+                            <i class="fas fa-chair"></i> {{ __('messages.admin_espaces_nombre_bureaux') }} *
+                            <span style="font-size:.75rem;color:#64748b;font-weight:400"> — {{ __('messages.admin_espaces_nombre_bureaux_aide') }}</span>
+                        </label>
+                        <input wire:model="fNombreBureaux"
+                               type="number"
+                               class="cw-input @error('fNombreBureaux') cw-input-error @enderror"
+                               min="1" max="500"
+                               placeholder="{{ __('messages.admin_espaces_nombre_bureaux_placeholder') }}"
+                               x-bind:required="show">
+                        @error('fNombreBureaux')<span class="cw-form-error">{{ $message }}</span>@enderror
+                    </div>
                 </div>
 
                 {{-- Description --}}
                 <div class="cw-form-group">
-                    <label class="cw-label">Description</label>
-                    <textarea wire:model="form.description" class="cw-textarea" rows="3"
-                              placeholder="Décrivez cet espace…"></textarea>
-                    @error('form.description')<span class="cw-form-error">{{ $message }}</span>@enderror
+                    <label class="cw-label">{{ __('messages.admin_espaces_description') }}</label>
+                    <textarea wire:model="fDescription"
+                              class="cw-textarea" rows="3"
+                              placeholder="{{ __('messages.admin_espaces_description_placeholder') }}"></textarea>
                 </div>
 
                 {{-- Capacité --}}
+                @if($hasCapaciteMinMax)
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
                     <div class="cw-form-group">
-                        <label class="cw-label">Capacité min *</label>
-                        <input wire:model="form.capacite_min" type="number" class="cw-input" min="1">
-                        @error('form.capacite_min')<span class="cw-form-error">{{ $message }}</span>@enderror
+                        <label class="cw-label">{{ __('messages.admin_espaces_capacite_min') }} *</label>
+                        <input wire:model="fCapaciteMin"
+                               type="number" class="cw-input @error('fCapaciteMin') cw-input-error @enderror" min="1">
+                        @error('fCapaciteMin')<span class="cw-form-error">{{ $message }}</span>@enderror
                     </div>
                     <div class="cw-form-group">
-                        <label class="cw-label">Capacité max *</label>
-                        <input wire:model="form.capacite_max" type="number" class="cw-input" min="1">
-                        @error('form.capacite_max')<span class="cw-form-error">{{ $message }}</span>@enderror
+                        <label class="cw-label">{{ __('messages.admin_espaces_capacite_max') }} *</label>
+                        <input wire:model="fCapaciteMax"
+                               type="number" class="cw-input @error('fCapaciteMax') cw-input-error @enderror" min="1">
+                        @error('fCapaciteMax')<span class="cw-form-error">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+                @endif
+
+                {{-- Prix (caché si non_reservable) --}}
+                <div wire:key="prix-container"
+                     x-data="{ show: $wire.fType !== 'non_reservable' }"
+                     x-show="show"
+                     x-transition.duration.300ms
+                     x-init="$watch('$wire.fType', value => show = value !== 'non_reservable')">
+                    <div style="display:grid;grid-template-columns:1fr {{ $hasPrixJourneeMois ? '1fr 1fr' : '' }};gap:1rem">
+                        <div class="cw-form-group">
+                            <label class="cw-label">{{ __('messages.admin_espaces_prix_heure') }} *</label>
+                            <input wire:model="fPrixHeure"
+                                   type="number" class="cw-input @error('fPrixHeure') cw-input-error @enderror" min="0" step="0.5">
+                            @error('fPrixHeure')<span class="cw-form-error">{{ $message }}</span>@enderror
+                        </div>
+                        @if($hasPrixJourneeMois)
+                        <div class="cw-form-group">
+                            <label class="cw-label">{{ __('messages.admin_espaces_prix_jour') }}</label>
+                            <input wire:model="fPrixJournee"
+                                   type="number" class="cw-input" min="0" step="0.5" placeholder="Optionnel">
+                        </div>
+                        <div class="cw-form-group">
+                            <label class="cw-label">{{ __('messages.admin_espaces_prix_mois') }}</label>
+                            <input wire:model="fPrixMois"
+                                   type="number" class="cw-input" min="0" step="0.5" placeholder="Optionnel">
+                        </div>
+                        @endif
                     </div>
                 </div>
 
-                {{-- Prix --}}
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
-                    <div class="cw-form-group">
-                        <label class="cw-label">Prix/heure (DH) *</label>
-                        <input wire:model="form.prix_heure" type="number" class="cw-input" min="0" step="0.5">
-                        @error('form.prix_heure')<span class="cw-form-error">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="cw-form-group">
-                        <label class="cw-label">Prix/jour (DH)</label>
-                        <input wire:model="form.prix_journee" type="number" class="cw-input" min="0" step="0.5" placeholder="Optionnel">
-                        @error('form.prix_journee')<span class="cw-form-error">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="cw-form-group">
-                        <label class="cw-label">Prix/mois (DH)</label>
-                        <input wire:model="form.prix_mois" type="number" class="cw-input" min="0" step="0.5" placeholder="Optionnel">
-                        @error('form.prix_mois')<span class="cw-form-error">{{ $message }}</span>@enderror
-                    </div>
-                </div>
-
-                {{-- Adresse --}}
-                <div class="cw-form-group">
-                    <label class="cw-label">Adresse</label>
-                    <input wire:model="form.adresse" type="text" class="cw-input"
-                           placeholder="Ex : 12 Rue des Entrepreneurs, Casablanca">
-                    @error('form.adresse')<span class="cw-form-error">{{ $message }}</span>@enderror
-                </div>
-
-                {{-- ══════════════════════════════
-                     PHOTO PRINCIPALE
-                     1. Aperçu de l'image existante (si mode édition)
-                     2. Sélecteur de nouvelle image (wire:model="nouvellePhoto")
-                     3. Aperçu temporaire de la nouvelle image
-                ═══════════════════════════════ --}}
+                {{-- Photo principale --}}
+                @if($hasPhoto)
                 <div class="cw-form-group">
                     <label class="cw-label">
                         <i class="fas fa-image" style="color:var(--primary)"></i>
-                        Photo de l'espace
-                        <span style="font-size:.75rem;font-weight:400;color:var(--gray-400)">(JPG/PNG/WebP, max 2 Mo)</span>
+                        {{ __('messages.admin_espaces_photo') }}
+                        <span style="font-size:.75rem;font-weight:400;color:var(--gray-400)">{{ __('messages.admin_espaces_photo_aide') }}</span>
                     </label>
 
-                    {{-- A) Image existante --}}
-                    @if($photoExistante && !$supprimerPhotoExistante)
-                        <div style="margin-bottom:.75rem">
-                            <p style="font-size:.78rem;color:var(--gray-500);margin:0 0 .35rem 0">
-                                <i class="fas fa-check-circle" style="color:var(--success)"></i> Photo actuelle :
-                            </p>
-                            <div style="position:relative;display:inline-block">
-                                <img src="{{ asset('storage/' . $photoExistante) }}"
-                                     alt="Photo actuelle"
-                                     style="max-height:140px;max-width:100%;border-radius:8px;border:2px solid var(--gray-200);object-fit:cover">
-                                <button type="button"
-                                        wire:click="supprimerPhoto"
-                                        style="position:absolute;top:-8px;right:-8px;background:#ef4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center"
-                                        title="Supprimer cette photo">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <p style="font-size:.73rem;color:var(--gray-400);margin:.35rem 0 0 0">
-                                Cliquez <i class="fas fa-times" style="color:#ef4444"></i> pour supprimer, ou sélectionnez une nouvelle image pour remplacer.
-                            </p>
+                    {{-- Image existante --}}
+                    @if($photoExistante && !$supprimerPhotoFlag)
+                    <div style="margin-bottom:.75rem">
+                        <div style="position:relative;display:inline-block">
+                            <img src="{{ asset('storage/' . $photoExistante) }}"
+                                 alt="Photo actuelle"
+                                 style="max-height:130px;border-radius:8px;border:2px solid var(--gray-200);object-fit:cover">
+                            <button type="button"
+                                    wire:click="supprimerPhoto"
+                                    style="position:absolute;top:-8px;right:-8px;background:#ef4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center"
+                                    title="{{ __('messages.admin_espaces_photo_supprimer') }}">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                    @elseif($supprimerPhotoExistante)
-                        <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:.5rem .85rem;margin-bottom:.65rem;font-size:.8rem;color:#b91c1c">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Photo supprimée — elle sera retirée définitivement à la sauvegarde.
-                        </div>
+                        <p style="font-size:.73rem;color:var(--gray-400);margin:.3rem 0 0 0">
+                            {{ __('messages.admin_espaces_photo_remplacer') }}
+                        </p>
+                    </div>
+                    @elseif($supprimerPhotoFlag)
+                    <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:.5rem .85rem;margin-bottom:.65rem;font-size:.8rem;color:#b91c1c">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ __('messages.admin_espaces_photo_supprimee') }}
+                    </div>
                     @endif
 
-                    {{-- B) Sélecteur de fichier --}}
-                    <label for="photo-input-{{ $espaceId ?? 'new' }}"
-                           style="display:block;border:2px dashed var(--gray-300);border-radius:10px;padding:1.25rem;text-align:center;cursor:pointer;transition:.2s;background:var(--gray-50)"
+                    {{-- Sélecteur --}}
+                    <label for="photo-upload-{{ $espaceId ?? 'new' }}"
+                           style="display:block;border:2px dashed var(--gray-300);border-radius:10px;padding:1.25rem;text-align:center;cursor:pointer;background:var(--gray-50)"
                            onmouseover="this.style.borderColor='var(--primary)';this.style.background='rgba(102,126,234,.04)'"
                            onmouseout="this.style.borderColor='var(--gray-300)';this.style.background='var(--gray-50)'">
-                        <i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:var(--gray-300);display:block;margin-bottom:.4rem"></i>
+                        <i class="fas fa-cloud-upload-alt" style="font-size:1.8rem;color:var(--gray-300);display:block;margin-bottom:.3rem"></i>
                         <span style="font-size:.88rem;font-weight:500;color:var(--gray-600)">
-                            {{ ($photoExistante && !$supprimerPhotoExistante) ? 'Remplacer la photo' : 'Choisir une photo' }}
+                            {{ $photoExistante && !$supprimerPhotoFlag ? __('messages.admin_espaces_photo_remplacer_btn') : __('messages.admin_espaces_photo_choisir') }}
                         </span>
                     </label>
-                    <input id="photo-input-{{ $espaceId ?? 'new' }}"
+                    <input id="photo-upload-{{ $espaceId ?? 'new' }}"
                            wire:model="nouvellePhoto"
                            type="file"
                            accept="image/jpeg,image/png,image/jpg,image/webp"
                            style="display:none">
 
-                    {{-- Loading pendant l'upload Livewire --}}
                     <div wire:loading wire:target="nouvellePhoto"
                          style="text-align:center;padding:.5rem;color:var(--primary);font-size:.85rem">
-                        <i class="fas fa-spinner fa-spin"></i> Chargement en cours…
+                        <i class="fas fa-spinner fa-spin"></i> {{ __('messages.admin_espaces_modal_enregistrement') }}
                     </div>
 
-                    {{-- C) Aperçu de la nouvelle photo --}}
                     @if($nouvellePhoto)
-                        <div style="margin-top:.65rem">
-                            <p style="font-size:.78rem;color:var(--gray-500);margin:0 0 .35rem 0">
-                                <i class="fas fa-eye" style="color:var(--primary)"></i> Aperçu de la nouvelle photo :
-                            </p>
-                            <div style="position:relative;display:inline-block">
-                                <img src="{{ $nouvellePhoto->temporaryUrl() }}"
-                                     alt="Aperçu"
-                                     style="max-height:140px;max-width:100%;border-radius:8px;border:2px solid var(--success);object-fit:cover">
-                                <span style="position:absolute;bottom:5px;right:5px;background:var(--success);color:white;padding:.15rem .5rem;border-radius:3px;font-size:.68rem;font-weight:700">Nouvelle</span>
-                            </div>
-                        </div>
+                    <div style="margin-top:.65rem">
+                        <p style="font-size:.78rem;color:var(--gray-500);margin:0 0 .35rem 0">
+                            <i class="fas fa-eye" style="color:var(--primary)"></i> {{ __('messages.admin_espaces_photo_apercu') }} :
+                        </p>
+                        <img src="{{ $nouvellePhoto->temporaryUrl() }}"
+                             style="max-height:130px;border-radius:8px;border:2px solid var(--success)">
+                        <p style="font-size:.7rem;color:var(--gray-400);margin:.2rem 0 0">
+                            {{ __('messages.admin_espaces_photo_taille') }} : {{ round($nouvellePhoto->getSize() / 1024 / 1024, 2) }} MB
+                        </p>
+                    </div>
                     @endif
 
                     @error('nouvellePhoto')<span class="cw-form-error">{{ $message }}</span>@enderror
                 </div>
+                @endif
 
                 {{-- Actif --}}
                 <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem;background:var(--gray-50);border-radius:8px">
-                    <input type="checkbox" wire:model="form.actif" id="espace-actif-cb"
+                    <input type="checkbox" wire:model="fActif" id="espace-actif-chk"
                            style="width:18px;height:18px;accent-color:var(--primary)">
-                    <label for="espace-actif-cb" style="margin:0;font-weight:500;cursor:pointer">
-                        Espace actif et réservable
+                    <label for="espace-actif-chk" style="margin:0;font-weight:500;cursor:pointer">
+                        {{ __('messages.admin_espaces_actif_checkbox') }}
                     </label>
                 </div>
 
             </div>{{-- fin grille --}}
 
-            {{-- ── Boutons d'action ── --}}
+            {{-- Boutons --}}
             <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid var(--gray-100)">
                 <button type="button"
                         wire:click="$set('showModal',false)"
                         class="cw-btn cw-btn-outline">
-                    Annuler
+                    {{ __('messages.annuler') }}
                 </button>
-                {{-- ► wire:click="save" sur type="button" — pas de form submit --}}
                 <button type="button"
                         wire:click="save"
+                        wire:loading.attr="disabled"
+                        wire:target="save"
                         class="cw-btn cw-btn-primary">
                     <span wire:loading.remove wire:target="save">
-                        <i class="fas fa-save"></i> {{ $espaceId ? 'Mettre à jour' : 'Créer l\'espace' }}
+                        <i class="fas fa-save"></i>
+                        {{ $espaceId ? __('messages.admin_espaces_modal_modifier') : __('messages.admin_espaces_modal_creer') }}
                     </span>
                     <span wire:loading wire:target="save">
-                        <i class="fas fa-spinner fa-spin"></i> Enregistrement…
+                        <i class="fas fa-spinner fa-spin"></i> {{ __('messages.admin_espaces_modal_enregistrement') }}
                     </span>
                 </button>
             </div>
@@ -356,7 +508,6 @@
         </div>
     </div>
     @endif
-
 
     {{-- ══════════════════════════════════════
          MODAL SUPPRESSION
@@ -365,21 +516,23 @@
     <div class="cw-modal-overlay" wire:click.self="$set('showDeleteModal',false)">
         <div class="cw-modal" style="max-width:420px">
             <h3 style="color:var(--danger);margin-bottom:.75rem">
-                <i class="fas fa-exclamation-triangle"></i> Supprimer l'espace ?
+                <i class="fas fa-exclamation-triangle"></i> {{ __('messages.admin_espaces_supprimer_titre') }}
             </h3>
-            <p style="color:var(--gray-700);margin:0 0 .5rem 0">Cette action est <strong>irréversible</strong>.</p>
-            <p style="font-size:.84rem;color:var(--danger);margin:0">
-                L'espace, sa photo et toutes les réservations associées seront supprimés définitivement.
+            <p style="color:var(--gray-700);margin:0 0 .5rem">
+                {{ __('messages.admin_espaces_supprimer_irreversible') }}
+            </p>
+            <p style="font-size:.84rem;color:var(--danger)">
+                {{ __('messages.admin_espaces_supprimer_detail') }}
             </p>
             <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--gray-100)">
-                <button type="button" wire:click="$set('showDeleteModal',false)" class="cw-btn cw-btn-outline">Annuler</button>
+                <button type="button" wire:click="$set('showDeleteModal',false)" class="cw-btn cw-btn-outline">{{ __('messages.annuler') }}</button>
                 <button type="button" wire:click="delete" class="cw-btn cw-btn-danger">
-                    <span wire:loading.remove wire:target="delete"><i class="fas fa-trash"></i> Supprimer</span>
-                    <span wire:loading wire:target="delete"><i class="fas fa-spinner fa-spin"></i> Suppression…</span>
+                    <span wire:loading.remove wire:target="delete"><i class="fas fa-trash"></i> {{ __('messages.admin_espaces_supprimer_confirmer') }}</span>
+                    <span wire:loading wire:target="delete"><i class="fas fa-spinner fa-spin"></i></span>
                 </button>
             </div>
         </div>
     </div>
     @endif
-</div>
 
+</div>

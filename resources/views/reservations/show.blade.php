@@ -158,6 +158,7 @@
                         </div>
                     </div>
                 </div>
+                {{-- ✅ Bouton téléchargement facture — TOUJOURS visible --}}
                 <a href="{{ route('factures.pdf', $reservation->facture) }}"
                    class="cw-btn cw-btn-outline"
                    target="_blank">
@@ -165,10 +166,49 @@
                 </a>
             </div>
             @endif
+
+            {{-- ✅ Section Avis — visible quand la réservation est terminée et pas encore d'avis --}}
+            @if($reservation->statut === 'terminee' && !$reservation->avis && $reservation->espace->type !== 'non_reservable')
+            <div style="background:white;border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm);margin-top:1.5rem;display:flex;align-items:center;gap:1rem;border-left:4px solid #f59e0b">
+                <div style="font-size:2rem;color:#f59e0b">⭐</div>
+                <div style="flex:1">
+                    <div style="font-weight:600;margin-bottom:.2rem">
+                        {{ app()->getLocale() === 'en' ? 'Share your experience' : 'Partagez votre expérience' }}
+                    </div>
+                    <div style="font-size:.85rem;color:var(--gray-500)">
+                        {{ app()->getLocale() === 'en'
+                            ? 'Help other users by leaving a review for this space.'
+                            : 'Aidez les autres utilisateurs en laissant un avis sur cet espace.' }}
+                    </div>
+                </div>
+                <a href="{{ route('espaces.show', $reservation->espace) }}#avis"
+                   class="cw-btn cw-btn-warning cw-btn-sm" style="flex-shrink:0">
+                    <i class="fas fa-star"></i>
+                    {{ app()->getLocale() === 'en' ? 'Leave a review' : 'Donner un avis' }}
+                </a>
+            </div>
+            @elseif($reservation->avis)
+            <div style="background:white;border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm);margin-top:1.5rem;border-left:4px solid var(--success)">
+                <div style="font-weight:600;margin-bottom:.5rem;font-size:.95rem">
+                    <i class="fas fa-star" style="color:#f59e0b"></i>
+                    {{ app()->getLocale() === 'en' ? 'Your review' : 'Votre avis' }}
+                    <span style="color:#f59e0b;margin-left:.3rem">
+                        @for($i = 1; $i <= 5; $i++)
+                            {{ $i <= $reservation->avis->note ? '★' : '☆' }}
+                        @endfor
+                    </span>
+                </div>
+                @if($reservation->avis->commentaire)
+                <p style="color:var(--gray-500);font-size:.9rem;margin:0;font-style:italic">"{{ $reservation->avis->commentaire }}"</p>
+                @endif
+            </div>
+            @endif
+
         </div>
 
         {{-- Panneau latéral --}}
         <div>
+
             {{-- Statut --}}
             <div style="background:white;border-radius:var(--radius-lg);padding:2rem;margin-bottom:1.5rem;box-shadow:var(--shadow-sm);text-align:center">
                 <div style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-400);margin-bottom:.75rem">
@@ -177,14 +217,14 @@
                 <span class="cw-statut-badge {{ $reservation->statut }}" style="font-size:1rem;padding:.5rem 1.5rem">
                     @switch($reservation->statut)
                         @case('en_attente') <i class="fas fa-clock"></i> @break
-                        @case('confirmee') <i class="fas fa-check-circle"></i> @break
-                        @case('prolongee') <i class="fas fa-clock"></i> @break
-                        @case('terminee') <i class="fas fa-flag-checkered"></i> @break
-                        @case('annulee') <i class="fas fa-times-circle"></i> @break
+                        @case('confirmee')  <i class="fas fa-check-circle"></i> @break
+                        @case('prolongee')  <i class="fas fa-clock"></i> @break
+                        @case('terminee')   <i class="fas fa-flag-checkered"></i> @break
+                        @case('annulee')    <i class="fas fa-times-circle"></i> @break
                     @endswitch
                     {{ __('messages.' . $reservation->statut) }}
                 </span>
-                <div style="font-size:.8rem;color:var(--gray-400);margin-top:.75rem">
+                <div style="font-size:.8rem;color:var(--gray-400);margin-top:.75rem;font-family:monospace">
                     N° {{ $reservation->numero }}
                 </div>
             </div>
@@ -204,37 +244,40 @@
                 @endif
             </div>
 
-            {{-- Actions selon statut --}}
-            @if($reservation->statut === 'confirmee' || $reservation->statut === 'prolongee')
-            <div style="background:white;border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow-sm)">
-                <div style="font-size:.85rem;font-weight:600;color:var(--gray-600);margin-bottom:1rem">
-                    {{ app()->getLocale() === 'en' ? 'Actions' : 'Actions disponibles' }}
-                </div>
-                @if(!$reservation->debut->isPast())
-                <form method="POST" action="{{ route('reservations.index') }}" onsubmit="return confirm('{{ __('messages.confirmer_annulation_msg') }}')">
-                    @csrf
-                    <input type="hidden" name="_method" value="DELETE">
-                    {{-- Note: L'annulation se fait via le composant Livewire mes-reservations --}}
-                </form>
-                <a href="{{ route('reservations.index') }}" class="cw-btn cw-btn-outline" style="width:100%;justify-content:center;margin-bottom:.75rem">
+            {{-- ✅ Actions intelligentes (Livewire avec auto-refresh) --}}
+            @livewire('reservation-actions', ['reservation' => $reservation])
+
+            {{-- Navigation --}}
+            <div style="display:flex;flex-direction:column;gap:.75rem">
+                <a href="{{ route('reservations.index') }}" class="cw-btn cw-btn-outline" style="justify-content:center">
                     <i class="fas fa-list"></i> {{ __('messages.mes_reservations') }}
                 </a>
-                @endif
-                <a href="{{ route('espaces.show', $reservation->espace) }}" class="cw-btn cw-btn-primary" style="width:100%;justify-content:center">
+                <a href="{{ route('espaces.show', $reservation->espace) }}" class="cw-btn cw-btn-primary" style="justify-content:center">
                     <i class="fas fa-calendar-plus"></i> {{ __('messages.nouvelle_reservation') }}
                 </a>
             </div>
-            @else
-            <div style="text-align:center">
-                <a href="{{ route('espaces.index') }}" class="cw-btn cw-btn-primary">
-                    <i class="fas fa-search"></i>
-                    {{ app()->getLocale() === 'en' ? 'Browse spaces' : 'Voir les espaces' }}
-                </a>
-            </div>
-            @endif
+
         </div>
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+// Rafraîchir la page si le statut change (via Livewire event)
+document.addEventListener('livewire:init', () => {
+    Livewire.on('toast', ({ message, type }) => {
+        // Le toast est déjà géré globalement
+        // Recharger la page après une action (libérer/prolonger) pour mettre à jour le statut
+        if (type === 'success') {
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+    });
+});
+</script>
+@endpush
+
 @endsection
 

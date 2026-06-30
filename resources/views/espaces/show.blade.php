@@ -88,7 +88,8 @@
                 </div>
             </div>
 
-            {{-- Avis --}}
+            {{-- ✅ Avis - Uniquement pour les espaces réservables --}}
+            @if($espace->type !== 'non_reservable')
             <div style="background:white;border-radius:var(--radius-lg);padding:2rem;box-shadow:var(--shadow-sm)" id="avis">
                 <h3 style="font-weight:700;margin-bottom:1.5rem">
                     <i class="fas fa-star" style="color:#f59e0b"></i>
@@ -145,6 +146,7 @@
                 @endif
                 @endauth
             </div>
+            @endif
         </div>
 
         {{-- Formulaire réservation (sticky) --}}
@@ -155,4 +157,3 @@
     </div>
 </div>
 @endsection
-

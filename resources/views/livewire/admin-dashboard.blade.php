@@ -27,7 +27,7 @@
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon"><span style="font-weight:bold">DH</span></div>
             <div>
-                <div class="cw-kpi-value">{{ number_format($kpis['revenus_periode'] ?? 0, 0, ',', ' ') }}MAD</div>
+                <div class="cw-kpi-value">{{ number_format($kpis['revenus_periode'] ?? 0, 0, ',', ' ') }} MAD</div>
                 <div class="cw-kpi-label">{{ app()->getLocale() === 'en' ? 'Revenue' : 'Revenus' }} ({{ $periodeStats }}j)</div>
             </div>
         </div>
@@ -135,7 +135,7 @@
         <table class="cw-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>#</th>
                     <th>{{ app()->getLocale() === 'en' ? 'User' : 'Utilisateur' }}</th>
                     <th>{{ app()->getLocale() === 'en' ? 'Space' : 'Espace' }}</th>
                     <th>{{ app()->getLocale() === 'en' ? 'Start' : 'Début' }}</th>
@@ -159,82 +159,102 @@
     </div>
 </div>
 
-@push('scripts')
+@script
 <script>
-document.addEventListener('livewire:initialized', () => {
-    initCharts();
-});
-document.addEventListener('livewire:update', () => {
-    initCharts();
-});
+/**
+ * CORRECTIF wire:navigate + Chart.js
+ * ─────────────────────────────────────────────────────────────────────────
+ * @script/@endscript de Livewire 3 s'exécute À CHAQUE montage du composant
+ * (premier chargement + retour via wire:navigate) et a accès à $wire.
+ */
 
-function initCharts() {
-    const revData = @json($revenusMensuels);
-    const espData = @json($espacesPopulaires);
-
-    // Détruire si existants
-    ['chartRevenus', 'chartEspaces'].forEach(id => {
-        const c = Chart.getChart(id);
-        if (c) c.destroy();
+function renderAdminCharts(revData, espData) {
+    // Détruire les instances Chart.js existantes avant de recréer
+    ['chartRevenus', 'chartEspaces'].forEach(function(id) {
+        var existing = Chart.getChart(id);
+        if (existing) existing.destroy();
     });
 
-    // Chart revenus
-    const ctxR = document.getElementById('chartRevenus');
-    if (ctxR && revData.length) {
+    var ctxR = document.getElementById('chartRevenus');
+    if (ctxR && revData && revData.length) {
         new Chart(ctxR, {
             type: 'bar',
             data: {
-                labels: revData.map(d => d.mois),
+                labels: revData.map(function(d) { return d.mois; }),
                 datasets: [{
-                    label: 'Revenus (MAD)',
-                    data: revData.map(d => d.revenus),
-                    backgroundColor: 'rgba(102,126,234,.7)',
+                    label: '{{ app()->getLocale() === "en" ? "Revenue" : "Revenus" }} (MAD)',
+                    data: revData.map(function(d) { return d.revenus; }),
+                    backgroundColor: 'rgba(102,126,234,.75)',
                     borderRadius: 6,
                 }, {
-                    label: 'Réservations',
-                    data: revData.map(d => d.reservations),
+                    label: '{{ app()->getLocale() === "en" ? "Bookings" : "Réservations" }}',
+                    data: revData.map(function(d) { return d.reservations; }),
                     type: 'line',
                     borderColor: '#764ba2',
                     backgroundColor: 'rgba(118,75,162,.1)',
                     yAxisID: 'y2',
                     tension: .4,
                     pointRadius: 4,
+                    fill: true,
                 }]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { position: 'top' }},
+                plugins: { legend: { position: 'top' } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#f3f4f6' }},
-                    y2: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }},
+                    y:  { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                    y2: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } },
                 }
             }
         });
     }
 
-    // Chart espaces (doughnut)
-    const ctxE = document.getElementById('chartEspaces');
-    if (ctxE && espData.length) {
+    var ctxE = document.getElementById('chartEspaces');
+    if (ctxE && espData && espData.length) {
         new Chart(ctxE, {
             type: 'doughnut',
             data: {
-                labels: espData.map(d => d.nom),
+                labels: espData.map(function(d) { return d.nom; }),
                 datasets: [{
-                    data: espData.map(d => d.nb_reservations),
-                    backgroundColor: [
-                        '#667eea','#764ba2','#10b981','#f59e0b','#ef4444',
-                    ],
+                    data: espData.map(function(d) { return d.nb_reservations; }),
+                    backgroundColor: ['#667eea','#764ba2','#10b981','#f59e0b','#ef4444'],
                     borderWidth: 0,
                 }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                }
+                plugins: { legend: { position: 'bottom' } }
             }
         });
     }
 }
+
+// ─── Initialisation au montage du composant ───
+document.addEventListener('DOMContentLoaded', function() {
+    // Attendre que le DOM soit prêt
+    setTimeout(function() {
+        renderAdminCharts(@json($revenusMensuels), @json($espacesPopulaires));
+    }, 100);
+});
+
+// ─── Réinitialisation après navigation Livewire ───
+document.addEventListener('livewire:navigated', function() {
+    setTimeout(function() {
+        renderAdminCharts(@json($revenusMensuels), @json($espacesPopulaires));
+    }, 150);
+});
+
+// ─── Mise à jour quand la période change ───
+$wire.on('chartDataUpdated', function(data) {
+    renderAdminCharts(data.revenus, data.espaces);
+});
+
+// ─── Nettoyer les graphiques avant de quitter la page ───
+window.addEventListener('beforeunload', function() {
+    ['chartRevenus', 'chartEspaces'].forEach(function(id) {
+        var existing = Chart.getChart(id);
+        if (existing) existing.destroy();
+    });
+});
 </script>
-@endpush
+@endscript

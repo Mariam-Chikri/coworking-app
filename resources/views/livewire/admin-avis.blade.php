@@ -3,38 +3,38 @@
     <div class="cw-admin-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.5rem">
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon"><i class="fas fa-comments"></i></div>
-            <div><div class="cw-kpi-value">{{ $stats['total'] }}</div><div class="cw-kpi-label">Total avis</div></div>
+            <div><div class="cw-kpi-value">{{ $stats['total'] }}</div><div class="cw-kpi-label">{{ __('messages.admin_avis_total') }}</div></div>
         </div>
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-clock"></i></div>
-            <div><div class="cw-kpi-value">{{ $stats['en_attente'] }}</div><div class="cw-kpi-label">En attente</div></div>
+            <div><div class="cw-kpi-value">{{ $stats['en_attente'] }}</div><div class="cw-kpi-label">{{ __('messages.admin_avis_en_attente') }}</div></div>
         </div>
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-check"></i></div>
-            <div><div class="cw-kpi-value">{{ $stats['valides'] }}</div><div class="cw-kpi-label">Validés</div></div>
+            <div><div class="cw-kpi-value">{{ $stats['valides'] }}</div><div class="cw-kpi-label">{{ __('messages.admin_avis_valides') }}</div></div>
         </div>
         <div class="cw-kpi-card">
             <div class="cw-kpi-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"><i class="fas fa-star"></i></div>
-            <div><div class="cw-kpi-value">{{ $stats['moyenne'] }}/5</div><div class="cw-kpi-label">Note moyenne</div></div>
+            <div><div class="cw-kpi-value">{{ $stats['moyenne'] }}/5</div><div class="cw-kpi-label">{{ __('messages.admin_avis_note_moyenne') }}</div></div>
         </div>
     </div>
 
     {{-- Filtres --}}
     <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center">
-        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Auteur, commentaire..." class="cw-input" style="flex:1;min-width:200px">
+        <input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('messages.admin_avis_rechercher') }}" class="cw-input" style="flex:1;min-width:200px">
         <select wire:model.live="filterStatut" class="cw-select" style="width:auto">
-            <option value="">Tous</option>
-            <option value="en_attente">En attente</option>
-            <option value="valide">Validés</option>
+            <option value="">{{ __('messages.admin_avis_tous') }}</option>
+            <option value="en_attente">{{ __('messages.admin_avis_en_attente') }}</option>
+            <option value="valide">{{ __('messages.admin_avis_valides') }}</option>
         </select>
         <select wire:model.live="filterEspace" class="cw-select" style="width:auto">
-            <option value="">Tous les espaces</option>
+            <option value="">{{ __('messages.admin_reservations_tous_espaces') }}</option>
             @foreach($espaces as $e)
             <option value="{{ $e->id }}">{{ $e->nom }}</option>
             @endforeach
         </select>
         <select wire:model.live="filterNote" class="cw-select" style="width:auto">
-            <option value="">Toutes les notes</option>
+            <option value="">{{ __('messages.admin_avis_toutes_notes') }}</option>
             @for($i = 5; $i >= 1; $i--)
             <option value="{{ $i }}">{{ $i }} ★</option>
             @endfor
@@ -57,7 +57,7 @@
                         <span style="font-weight:600;color:var(--primary)">{{ $a->espace->nom }}</span>
                         <span style="color:#f59e0b;font-size:1rem">{{ str_repeat('★', $a->note) }}{{ str_repeat('☆', 5-$a->note) }}</span>
                         <span class="cw-statut-badge {{ $a->valide ? 'confirmee' : 'en_attente' }}">
-                            {{ $a->valide ? 'Validé' : 'En attente' }}
+                            {{ $a->valide ? __('messages.admin_avis_valides') : __('messages.admin_avis_en_attente') }}
                         </span>
                     </div>
                     @if($a->titre)
@@ -70,15 +70,15 @@
                 </div>
                 <div style="display:flex;gap:.5rem;flex-shrink:0">
                     @if(!$a->valide)
-                    <button wire:click="valider({{ $a->id }})" class="cw-btn cw-btn-success cw-btn-xs" title="Valider">
+                    <button wire:click="valider({{ $a->id }})" class="cw-btn cw-btn-success cw-btn-xs" title="{{ __('messages.admin_avis_valider') }}">
                         <i class="fas fa-check"></i>
                     </button>
                     @else
-                    <button wire:click="rejeter({{ $a->id }})" class="cw-btn cw-btn-outline cw-btn-xs" title="Rejeter">
+                    <button wire:click="rejeter({{ $a->id }})" class="cw-btn cw-btn-outline cw-btn-xs" title="{{ __('messages.admin_avis_rejeter') }}">
                         <i class="fas fa-ban"></i>
                     </button>
                     @endif
-                    <button wire:click="confirmDelete({{ $a->id }})" class="cw-btn cw-btn-danger cw-btn-xs" title="Supprimer">
+                    <button wire:click="confirmDelete({{ $a->id }})" class="cw-btn cw-btn-danger cw-btn-xs" title="{{ __('messages.admin_avis_supprimer') }}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -87,7 +87,7 @@
         @empty
         <div style="text-align:center;padding:3rem;color:var(--gray-400)">
             <i class="fas fa-comments" style="font-size:2rem;margin-bottom:1rem;display:block"></i>
-            Aucun avis trouvé
+            {{ __('messages.admin_avis_aucun') }}
         </div>
         @endforelse
     </div>
@@ -98,13 +98,13 @@
     <div class="cw-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
         <div class="cw-modal" style="max-width:420px">
             <div class="cw-modal-header">
-                <h3 style="color:#ef4444"><i class="fas fa-exclamation-triangle"></i> Supprimer l'avis ?</h3>
+                <h3 style="color:#ef4444"><i class="fas fa-exclamation-triangle"></i> {{ __('messages.admin_avis_supprimer_titre') }}</h3>
                 <button wire:click="$set('showDeleteModal', false)" class="cw-modal-close"><i class="fas fa-times"></i></button>
             </div>
-            <div class="cw-modal-body"><p>Cette action est irréversible.</p></div>
+            <div class="cw-modal-body"><p>{{ __('messages.admin_avis_supprimer_irreversible') }}</p></div>
             <div class="cw-modal-footer">
-                <button wire:click="$set('showDeleteModal', false)" class="cw-btn cw-btn-outline">Annuler</button>
-                <button wire:click="delete" class="cw-btn cw-btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+                <button wire:click="$set('showDeleteModal', false)" class="cw-btn cw-btn-outline">{{ __('messages.annuler') }}</button>
+                <button wire:click="delete" class="cw-btn cw-btn-danger"><i class="fas fa-trash"></i> {{ __('messages.supprimer') }}</button>
             </div>
         </div>
     </div>
