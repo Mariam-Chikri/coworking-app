@@ -3,52 +3,51 @@
 namespace App\Observers;
 
 use App\Models\Reservation;
-use App\Jobs\CheckReservationExpirationJob;
 use App\Jobs\TerminateExpiredReservationsJob;
-use Illuminate\Support\Facades\Log;
 
 class ReservationObserver
 {
     /**
-     * Après la création d'une réservation
+     * Handle the Reservation "created" event.
      */
     public function created(Reservation $reservation): void
     {
-        // Planifier la vérification automatique
-        $this->scheduleExpirationCheck($reservation);
+        // Dispatcher un job pour vérifier les réservations expirées après création
+        TerminateExpiredReservationsJob::dispatch()->delay(now()->addMinutes(1));
     }
 
     /**
-     * Après la mise à jour d'une réservation
+     * Handle the Reservation "updated" event.
      */
     public function updated(Reservation $reservation): void
     {
-        // Si le statut ou la fin a changé, replanifier
-        if ($reservation->wasChanged(['statut', 'fin'])) {
-            $this->scheduleExpirationCheck($reservation);
+        // Si le statut passe à 'terminee', déclencher les événements appropriés
+        if ($reservation->isDirty('statut') && $reservation->statut === 'terminee') {
+            info("Réservation #{$reservation->numero} terminée.");
         }
     }
 
     /**
-     * Planifier la vérification d'expiration
+     * Handle the Reservation "deleted" event.
      */
-    private function scheduleExpirationCheck(Reservation $reservation): void
+    public function deleted(Reservation $reservation): void
     {
-        // Uniquement pour les réservations confirmées ou prolongées
-        if (!in_array($reservation->statut, ['confirmee', 'prolongee'])) {
-            return;
-        }
+        //
+    }
 
-        // Planifier un job pour 5 minutes après la fin
-        $delay = $reservation->fin->addMinutes(5);
-        
-        // Vérifier si le job existe déjà dans le futur
-        // (On utilisera un job unique pour chaque réservation)
-        
-        // Dispatch un job individuel pour cette réservation
-        CheckReservationExpirationJob::dispatch($reservation->id)
-            ->delay($delay);
-        
-        Log::info("ReservationObserver: Job planifié pour la réservation #{$reservation->id} à " . $delay->format('Y-m-d H:i:s'));
+    /**
+     * Handle the Reservation "restored" event.
+     */
+    public function restored(Reservation $reservation): void
+    {
+        //
+    }
+
+    /**
+     * Handle the Reservation "force deleted" event.
+     */
+    public function forceDeleted(Reservation $reservation): void
+    {
+        //
     }
 }

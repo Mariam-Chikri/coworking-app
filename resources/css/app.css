@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ✅ Dark Mode Styles Globaux */
+@layer base {
+    /* Appliquer les styles dark au niveau de la page entière */
+    html.dark {
+        @apply bg-gray-900 text-white;
+    }
+
+    html.dark body {
+        @apply bg-gray-900 text-gray-100;
+    }
+
+    html.dark a {
+        @apply text-blue-400 hover:text-blue-300;
+    }
+
+    html.dark button:not([class*='bg-']) {
+        @apply bg-gray-800 text-gray-100;
+    }
+
+    html.dark input:not([type='checkbox']):not([type='radio']),
+    html.dark textarea,
+    html.dark select {
+        @apply bg-gray-800 text-white border-gray-700;
+    }
+
+    html.dark .card,
+    html.dark .modal,
+    html.dark .dropdown {
+        @apply bg-gray-800 border-gray-700;
+    }
+
+    html.dark h1,
+    html.dark h2,
+    html.dark h3,
+    html.dark h4,
+    html.dark h5,
+    html.dark h6 {
+        @apply text-gray-50;
+    }
+}

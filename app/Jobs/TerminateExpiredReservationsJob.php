@@ -11,35 +11,52 @@ class TerminateExpiredReservationsJob implements ShouldQueue
 {
     use Queueable;
 
+    /**
+     * Create a new job instance.
+     */
     public function __construct()
     {
-        $this->onQueue('default');
+        //
     }
 
+    /**
+     * Execute the job.
+     * 
+     * Terminer automatiquement les réservations après la période de grâce (5 minutes)
+     */
     public function handle(): void
     {
-        $count = 0;
-        $reservations = Reservation::whereIn('statut', ['confirmee', 'prolongee'])
-            ->where('fin', '<=', now()->subMinutes(5))
-            ->get();
+        try {
+            // Grace period: 5 minutes après la fin
+            $graceMinutes = 5;
+            
+            // Récupérer les réservations confirmées ou prolongées
+            // dont la fin + 5 minutes est passée
+            $reservations = Reservation::whereIn('statut', ['confirmee', 'prolongee'])
+                ->where('fin', '<=', now()->subMinutes($graceMinutes))
+                ->where(function ($query) {
+                    $query->whereNull('liberation_anticipee')
+                          ->orWhere('liberation_anticipee', false);
+                })
+                ->get();
 
-        foreach ($reservations as $reservation) {
-            if (!$reservation->liberation_anticipee) {
-                $reservation->statut = 'terminee';
-                $reservation->save();
+            $count = 0;
+            foreach ($reservations as $reservation) {
+                $reservation->update([
+                    'statut' => 'terminee'
+                ]);
+                
+                Log::info("Réservation #{$reservation->numero} automatiquement terminée (fin : {$reservation->fin})");
                 $count++;
             }
-        }
 
-        if ($count > 0) {
-            Log::info("TerminateExpiredReservationsJob: {$count} réservation(s) terminée(s).");
-        }
-    }
+            if ($count > 0) {
+                Log::info("✅ {$count} réservation(s) terminée(s) automatiquement");
+            }
 
-    public function failed(\Throwable $exception): void
-    {
-        Log::error('TerminateExpiredReservationsJob échoué', [
-            'error' => $exception->getMessage(),
-        ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur lors de la terminaison des réservations : ' . $e->getMessage());
+            throw $e;
+        }
     }
 }
